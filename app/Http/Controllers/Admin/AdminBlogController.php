@@ -57,7 +57,7 @@ class AdminBlogController extends Controller
             ]);
 
             // cats 関連を保存
-            $blog->cats()->sync($data['cats'] ?? []);
+            $blog->cats()->sync($validated['cats'] ?? []);
         });
 
         return to_route('admin.blogs.index')->with('success', 'ブログを投稿しました。');
