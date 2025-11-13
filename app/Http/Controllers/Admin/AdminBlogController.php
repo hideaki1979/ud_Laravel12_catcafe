@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\UpdateBlogRequest;
 use App\Models\Blog;
 use App\Models\Cat;
 use App\Models\Category;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class AdminBlogController extends Controller
@@ -27,7 +26,12 @@ class AdminBlogController extends Controller
      */
     public function create()
     {
-        return view('admin.blogs.create');
+        $categories = Category::all();
+        $cats = Cat::all();
+        return view('admin.blogs.create', [
+            'categories' => $categories,
+            'cats' => $cats,
+        ]);
     }
 
     /**
@@ -36,10 +40,20 @@ class AdminBlogController extends Controller
     public function store(StoreBlogRequest $request)
     {
         // Blogテーブル登録処理
+        // 画像保存
         $savedImagePath = $request->file('image')->store('blogs', 'public');
-        $blog = new Blog($request->validated());
-        $blog->image = $savedImagePath;
+
+        // バリデート済みデータ取得
+        $data = $request->validated();
+        $data['image'] = $savedImagePath;
+
+        // Blog作成
+        $blog = new Blog($data);
+        $blog->category()->associate($data['category_id']);
         $blog->save();
+
+        // cats 関連を保存
+        $blog->cats()->sync($data['cats'] ?? []);
 
         return to_route('admin.blogs.index')->with('success', 'ブログを投稿しました。');
     }
@@ -54,7 +68,6 @@ class AdminBlogController extends Controller
      */
     public function edit(Blog $blog)
     {
-        $user = Auth::user();
         $categories = Category::all();
         $cats = Cat::all();
         return view('admin.blogs.edit', [
