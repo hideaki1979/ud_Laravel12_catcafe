@@ -92,13 +92,12 @@ class AdminBlogController extends Controller
             $updateData = $request->validated();
 
             // 画像を変更する場合
-            if ($request->has('image')) {
+            if ($request->hasFile('image')) {
                 // 変更前の画像を削除
                 Storage::disk('public')->delete($blog->image);
                 // 変更後の画像をアップロード、保存パスを更新対象データにセット
                 $updateData['image'] = $request->file('image')->store('blogs', 'public');
             }
-            $blog->category()->associate($updateData['category_id']);
             $blog->update($updateData);
             $blog->cats()->sync($updateData['cats'] ?? []);
         });
