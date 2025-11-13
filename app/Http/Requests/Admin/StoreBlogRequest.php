@@ -33,6 +33,7 @@ class StoreBlogRequest extends FormRequest
                 'dimensions:min_width=300,min_height=300,max_width=2048,max_height=2048', // 画像の解像度が300px * 300px ~ 2048px * 2048px
             ],
             'body' => ['required', 'max:20000'],
+            'cats' => ['required', 'array'],
             'cats.*' => ['distinct', 'exists:cats,id'],
         ];
     }

@@ -58,8 +58,8 @@
                                     name="category_id" id="">
                                     <option value="">選択してください</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}"
-                                            @if ($category->id == old('category_id', $blog->category_id)) selected @endif>{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}" @selected($category->id == old('category_id', $blog->category_id))>
+                                            {{ $category->name }}</option>
                                     @endforeach
                                 </select>
                                 <div
@@ -79,7 +79,7 @@
                             <select class="mr-6 w-full" name="cats[]" id="js-pulldown" multiple>
                                 <option value="">選択してください</option>
                                 @foreach ($cats as $cat)
-                                    <option value="{{ $cat->id }}" @if (in_array($cat->id, old('cats', $blog->cats->pluck('id')->all()))) selected @endif>
+                                    <option value="{{ $cat->id }}" @selected(in_array($cat->id, old('cats', $blog->cats->pluck('id')->all())))>
                                         {{ $cat->name }}
                                     </option>
                                 @endforeach

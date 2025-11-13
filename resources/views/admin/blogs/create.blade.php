@@ -55,8 +55,8 @@
                                     name="category_id" id="">
                                     <option value="">選択してください</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}"
-                                            @if ($category->id == old('category_id')) selected @endif>{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>
+                                            {{ $category->name }}</option>
                                     @endforeach
                                 </select>
                                 <div
@@ -76,7 +76,7 @@
                             <select class="mr-6 w-full" name="cats[]" id="js-pulldown" multiple>
                                 <option value="">選択してください</option>
                                 @foreach ($cats as $cat)
-                                    <option value="{{ $cat->id }}" @if (in_array($cat->id, old('cats', []))) selected @endif>
+                                    <option value="{{ $cat->id }}" @selected(in_array($cat->id, old('cats', [])))>
                                         {{ $cat->name }}</option>
                                 @endforeach
                             </select>
