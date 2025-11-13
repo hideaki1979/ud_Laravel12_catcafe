@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreBlogRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'max:255'],
+            'image' => [
+                'required',
+                'file',
+                'image',
+                'max:2048',
+                'mimes:jpeg,jpg,png,webp',
+                'dimensions:min_width=300,min_height=300,max_width=2048,max_height=2048', // 画像の解像度が300px * 300px ~ 2048px * 2048px
+            ],
+            'body' => ['required', 'max:20000'],
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'title' => 'タイトル',
+            'image' => '画像'
+        ];
+    }
+}
