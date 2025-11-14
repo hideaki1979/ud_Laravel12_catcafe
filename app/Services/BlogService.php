@@ -15,11 +15,11 @@ class BlogService
     {
         // Blogテーブル登録処理(データ整合性を担保するためトランザクション)
         return DB::transaction(function () use ($validatedData, $image) {
-            // バリデート済みデータ取得
-            $validatedData['image'] = $image->store('blogs', 'public');
+            // 画像を保存
+            $imagePath = $image->store('blogs', 'public');
 
             // Blog登録処理
-            $blog = Blog::create(Arr::except($validatedData, ['cats']));
+            $blog = Blog::create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath]));
 
             // cats 関連を保存
             $blog->cats()->sync($validatedData['cats'] ?? []);
@@ -39,7 +39,7 @@ class BlogService
                 // 変更後の画像をアップロード、保存パスを更新対象データにセット
                 $updateData['image'] = $request->file('image')->store('blogs', 'public');
             }
-            $blog->update($updateData);
+            $blog->update(Arr::except($updateData, ['cats']));
             $blog->cats()->sync($updateData['cats'] ?? []);
         });
     }
