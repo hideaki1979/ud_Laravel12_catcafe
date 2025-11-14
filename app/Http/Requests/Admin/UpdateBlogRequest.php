@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\HasBlogAttributes;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBlogRequest extends FormRequest
 {
+    use HasBlogAttributes;
     /**
      * Determine if the user is authorized to make this request.
      */
