@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\Admin\UpdateBlogRequest;
 use App\Models\Blog;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -11,15 +12,15 @@ use Illuminate\Support\Facades\Storage;
 
 class BlogService
 {
-    public function store(array $validatedData, UploadedFile $image): Blog
+    public function store(array $validatedData, UploadedFile $image, User $user): Blog
     {
         // Blogテーブル登録処理(データ整合性を担保するためトランザクション)
-        return DB::transaction(function () use ($validatedData, $image) {
+        return DB::transaction(function () use ($validatedData, $image, $user) {
             // 画像を保存
             $imagePath = $image->store('blogs', 'public');
 
             // Blog登録処理
-            $blog = Blog::create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath, 'user_id' => auth()->id()]));
+            $blog = Blog::create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath, 'user_id' => $user->id]));
 
             // cats 関連を保存
             $blog->cats()->sync($validatedData['cats'] ?? []);

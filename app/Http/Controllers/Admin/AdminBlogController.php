@@ -50,7 +50,7 @@ class AdminBlogController extends Controller
     public function store(StoreBlogRequest $request)
     {
         // Blogテーブル登録処理(データ整合性を担保するためトランザクション)
-        $this->blogService->store($request->validated(), $request->file('image'));
+        $this->blogService->store($request->validated(), $request->file('image'), $request->user());
 
         // ブログ一覧に遷移
         return to_route('admin.blogs.index')->with('success', 'ブログを投稿しました。');
