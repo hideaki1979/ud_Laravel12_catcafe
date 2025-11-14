@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\HasBlogAttributes;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBlogRequest extends FormRequest
 {
+    use HasBlogAttributes;
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -35,14 +37,6 @@ class StoreBlogRequest extends FormRequest
             'body' => ['required', 'max:20000'],
             'cats' => ['nullable', 'array'],
             'cats.*' => ['distinct', 'exists:cats,id'],
-        ];
-    }
-
-    public function attributes()
-    {
-        return [
-            'title' => 'タイトル',
-            'image' => '画像'
         ];
     }
 }

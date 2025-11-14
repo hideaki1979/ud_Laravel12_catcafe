@@ -30,9 +30,9 @@
                                     <p><a href="{{ route('admin.blogs.edit', ['blog' => $blog]) }}">{{ $blog->title }}</a>
                                     </p>
                                 </td>
-                                <td>{{ $blog->category->name }}</td>
-                                <td>高橋</td>
-                                <td>{{ $blog->update_at }}</td>
+                                <td>{{ $blog->category?->name ?? '-' }}</td>
+                                <td>{{ $blog->user?->name ?? '-' }}</td>
+                                <td>{{ $blog->updated_at->format('Y年m月d日 H:i') }}</td>
                                 <td>
                                     <div class="flex">
                                         <a href="{{ route('admin.blogs.edit', ['blog' => $blog->id]) }}" class="mr-2">

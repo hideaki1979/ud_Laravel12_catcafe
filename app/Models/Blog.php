@@ -9,7 +9,7 @@ class Blog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'category_id', 'image', 'body'];
+    protected $fillable = ['title', 'category_id', 'user_id', 'image', 'body'];
 
     public function category()
     {
@@ -19,5 +19,10 @@ class Blog extends Model
     public function cats()
     {
         return $this->belongsToMany(Cat::class)->withTimestamps();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
