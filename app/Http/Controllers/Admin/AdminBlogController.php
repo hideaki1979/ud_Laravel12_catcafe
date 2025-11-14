@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateBlogRequest;
 use App\Models\Blog;
 use App\Models\Cat;
 use App\Models\Category;
+use App\Models\User;
 use App\Services\BlogService;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +26,8 @@ class AdminBlogController extends Controller
      */
     public function index()
     {
-        $blogs = Blog::latest('updated_at')->paginate(10);
+        // category と user をまとめて取得して N+1 を防ぐ
+        $blogs = Blog::with(['category', 'user'])->latest('updated_at')->paginate(10);
         return view('admin.blogs.index', ['blogs' => $blogs]);
     }
 
