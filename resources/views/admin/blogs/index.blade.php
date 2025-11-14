@@ -32,7 +32,7 @@
                                 </td>
                                 <td>{{ $blog->category->name ?? '-' }}</td>
                                 <td>{{ $blog->user?->name ?? '-' }}</td>
-                                <td>{{ $blog->updated_at }}</td>
+                                <td>{{ $blog->updated_at->format('Y年m月d日 H:i') }}</td>
                                 <td>
                                     <div class="flex">
                                         <a href="{{ route('admin.blogs.edit', ['blog' => $blog->id]) }}" class="mr-2">
