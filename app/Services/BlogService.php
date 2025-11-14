@@ -18,10 +18,8 @@ class BlogService
             // 画像を保存
             $imagePath = $image->store('blogs', 'public');
 
-            // ログインユーザーを設定
-            $validatedData['user_id'] = auth()->id();
             // Blog登録処理
-            $blog = Blog::create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath]));
+            $blog = Blog::create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath, 'user_id' => auth()->id()]));
 
             // cats 関連を保存
             $blog->cats()->sync($validatedData['cats'] ?? []);
