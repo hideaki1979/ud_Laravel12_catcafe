@@ -20,7 +20,7 @@ class BlogService
             $imagePath = $image->store('blogs', 'public');
 
             // Blog登録処理
-            $blog = $user->blogs()->create(array_merge(Arr::except($validatedData, ['cats']), ['image' => $imagePath]));
+            $blog = $user->blogs()->create(array_merge(Arr::except($validatedData, ['cats', 'image']), ['image' => $imagePath]));
 
             // cats 関連を保存
             $blog->cats()->sync($validatedData['cats'] ?? []);
