@@ -23,7 +23,6 @@ Route::prefix('/admin')
                 // ブログ関連
                 Route::resource('/blogs', AdminBlogController::class)->except('show');
 
-
                 // ユーザー登録・ログイン
                 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
                 Route::post('/users', [UserController::class, 'store'])->name('users.store');

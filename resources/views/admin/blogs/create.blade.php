@@ -52,7 +52,7 @@
                             <label class="block text-sm mb-2" for="category">カテゴリー</label>
                             <div class="flex">
                                 <select class="appearance-none block pl-4 pr-8 py-3 mb-2 text-sm bg-white border rounded"
-                                    name="category_id" id="">
+                                    name="category_id" id="category">
                                     <option value="">選択してください</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>
