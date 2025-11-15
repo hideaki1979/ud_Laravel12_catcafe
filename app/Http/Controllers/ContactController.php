@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactRequest;
 use App\Mail\ContactAdminMail;
+use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -20,7 +22,8 @@ class ContactController extends Controller
         $validated = $request->validated();
 
         // これ以降の行は入力エラーがなかった場合のみ実行されます
-        // 登録処理(実際はメール送信などを行う)
+        // お問い合わせ登録処理
+        Contact::create($validated);
         Mail::to('syumeikyo@outlook.jp')->send(new ContactAdminMail($validated));
         return to_route('contact.complete');
     }
