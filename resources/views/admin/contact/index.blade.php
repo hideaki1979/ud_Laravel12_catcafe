@@ -21,7 +21,7 @@
                             </thead>
                             <tbody>
                                 @forelse ($contacts as $contact)
-                                    <tr class="@if ($loop->even) bg-gray-100 @else bg-white @endif text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors"
+                                    <tr class="@if ($contact->is_read) bg-gray-100 @else bg-white @endif text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors"
                                         onclick="window.location = '{{ route('admin.contacts.show', $contact) }}'">
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name_kana }}</td>
@@ -30,19 +30,22 @@
                                             {{ $contact->created_at->format('Y.m.d H:i:s') }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">
                                             <div class="flex items-center gap-3">
-                                                <form action="{{ route('admin.contacts.update', $contact) }}" method="POST"
-                                                    onclick="event.stopPropagation();">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="text-green-500 hover:text-green-700"
-                                                        title="対応済み">
-                                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
-                                                                stroke-linecap="round" stroke-linejoin="round" />
-                                                        </svg>
-                                                    </button>
-                                                </form>
+                                                @if (!$contact->is_read)
+                                                    <form action="{{ route('admin.contacts.update', $contact) }}"
+                                                        method="POST" onclick="event.stopPropagation();">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="text-green-500 hover:text-green-700"
+                                                            title="対応済み">
+                                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                                                                xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M20 6L9 17L4 12" stroke="currentColor"
+                                                                    stroke-width="2" stroke-linecap="round"
+                                                                    stroke-linejoin="round" />
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                                 <form action="{{ route('admin.contacts.destroy', $contact) }}"
                                                     method="POST" onsubmit="return confirm('本当に削除しますか？')"
                                                     onclick="event.stopPropagation();">

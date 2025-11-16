@@ -29,10 +29,7 @@ Route::prefix('/admin')
                 Route::post('/users', [UserController::class, 'store'])->name('users.store');
 
                 // お問い合わせ管理
-                Route::get('/contacts', [AdminContactController::class, 'index'])->name('contacts.index');
-                Route::get('/contacts/{contact}', [AdminContactController::class, 'show'])->name('contacts.show');
-                Route::patch('/contacts/{contact}', [AdminContactController::class, 'update'])->name('contacts.update');
-                Route::delete('/contacts/{contact}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
+                Route::resource('contacts', AdminContactController::class)->only('index', 'show', 'update', 'destroy');
 
                 // ログアウト
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

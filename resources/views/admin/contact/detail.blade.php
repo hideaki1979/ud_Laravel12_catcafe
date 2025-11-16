@@ -34,8 +34,8 @@
                             </div>
                             <div class="mb-6">
                                 <label class="block text-sm mb-2" for="body">本文</label>
-                                <textarea class="block w-96 max-w-full px-4 py-3 mb-2 text-sm text-gray-500 border rounded" type="text"
-                                    id="body" name="field-name" rows="5" disabled>{{ $contact->body }}</textarea>
+                                <textarea class="block w-96 max-w-full px-4 py-3 mb-2 text-sm text-gray-500 border rounded" id="body"
+                                    rows="5" disabled>{{ $contact->body }}</textarea>
                             </div>
                             <div class="mt-6 pt-6 border-t">
                                 <a href="{{ route('admin.contacts.index') }}"
