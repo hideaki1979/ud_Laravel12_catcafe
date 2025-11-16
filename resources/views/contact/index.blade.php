@@ -29,7 +29,7 @@
                 @endif
                 <!-- ▼▼▼▼エラーメッセージ▼▼▼▼　-->
             </div>
-            <form action="{{ route('contact') }}" method="POST">
+            <form action="{{ route('contact.send') }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label for="name" class="block p-1 my-1">お名前<span

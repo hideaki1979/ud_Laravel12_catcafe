@@ -147,9 +147,10 @@
             <main class="py-4 px-6">
                 @if (session()->has('success'))
                     <!-- ▼▼▼▼登録完了メッセージ(全ページで共通)▼▼▼▼　-->
-                    <div class="mb-4 text-right">
-                        <div
-                            class="pl-6 pr-16 py-4 bg-white border-l-4 border-green-500 shadow-md rounded-r-lg inline-block ml-auto">
+                    <div id="flash-message" class="mb-4 text-right">
+                        <div id="flash-inner"
+                            class="pl-6 pr-16 py-4 bg-white border-l-4 border-green-500 shadow-md rounded-r-lg inline-block ml-auto
+                            -translate-y-3 opacity-0 transition-all duration-500 ease-out">
                             <div class="flex items-center">
                                 <span class="inline-block mr-2">
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -163,6 +164,7 @@
                             </div>
                         </div>
                     </div>
+                    <script src="{{ asset('js/admin/flash-message.js') }}" defer></script>
                     <!-- ▼▼▼▼登録完了メッセージ(全ページで共通)▼▼▼▼　-->
                 @endif
 
