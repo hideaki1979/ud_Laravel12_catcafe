@@ -1,4 +1,4 @@
-@extends('layouts.admin');
+@extends('layouts.admin')
 
 @section('content')
     <div class="mx-auto">
@@ -31,7 +31,7 @@
                                         <td class="px-4 py-4 text-sm text-gray-700">
                                             <div class="flex items-center gap-3">
                                                 <a href="" class="text-green-500 hover:text-green-700"
-                                                    title="詳細">
+                                                    title="対応済み">
                                                     <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none"
                                                         xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
@@ -72,8 +72,8 @@
                     </div>
                 </div>
 
-                <div>
-
+                <div class="mt-4">
+                    {{ $contacts->links() }}
                 </div>
             </section>
         </main>
