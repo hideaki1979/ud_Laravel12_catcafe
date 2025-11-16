@@ -115,7 +115,7 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
     'to' => [
-        'address' => env('MAIL_TO_ADDRESS', 'mail@outlook.jp')
+        'address' => env('MAIL_TO_ADDRESS')
     ],
 
 ];
