@@ -22,6 +22,7 @@
                             <tbody>
                                 @forelse ($contacts as $contact)
                                     <tr class="@if ($contact->is_read) bg-gray-100 @else bg-white @endif text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors"
+                                        role="link" tabindex="0" onkeydown="if(event.key === 'Enter') this.click();"
                                         onclick="window.location = '{{ route('admin.contacts.show', $contact) }}'">
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name_kana }}</td>
