@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ContactRequest;
 use App\Mail\ContactAdminMail;
 use App\Models\Contact;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
@@ -18,11 +21,22 @@ class ContactController extends Controller
     {
         $validated = $request->validated();
 
-        // これ以降の行は入力エラーがなかった場合のみ実行されます
-        // お問い合わせ登録処理
-        Contact::create($validated);
-        Mail::to('syumeikyo@outlook.jp')->send(new ContactAdminMail($validated));
-        return to_route('contact.complete');
+        try {
+            // これ以降の行は入力エラーがなかった場合のみ実行されます
+            // お問い合わせ登録処理
+            DB::transaction(function () use ($validated) {
+                Contact::create($validated);
+                Mail::to('syumeikyo@outlook.jp')->send(new ContactAdminMail($validated));
+            });
+
+            return to_route('contact.complete');
+        } catch (Exception $e) {
+            // エラーログに記録
+            Log::error('お問い合わせ送信エラー：', $e->getMessage());
+
+            // ユーザーにエラーメッセージを表示
+            return back()->withInput()->with('error', 'お問い合わせの送信に失敗しました。');
+        }
     }
 
     public function complete()

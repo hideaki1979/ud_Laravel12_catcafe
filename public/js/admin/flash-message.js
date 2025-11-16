@@ -1,6 +1,6 @@
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
-        var el = document.getElementById('flash-inner');
+        const el = document.getElementById('flash-inner');
         if (!el) return;
 
         // スライドイン（Tailwind のユーティリティクラスを操作）

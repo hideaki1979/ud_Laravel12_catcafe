@@ -30,20 +30,24 @@
                                             {{ $contact->created_at->format('Y.m.d H:i:s') }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">
                                             <div class="flex items-center gap-3">
-                                                <a href="" class="text-green-500 hover:text-green-700"
-                                                    title="対応済み">
-                                                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none"
-                                                        xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round" />
-                                                    </svg>
-                                                </a>
-                                                <form action="" class="inline-flex">
+                                                <form action="">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button action="" type="submit"
+                                                        class="text-green-500 hover:text-green-700" title="対応済み">
+                                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                                <form action="">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-500 hover:text-red-700"
                                                         title="削除">
-                                                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none"
+                                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
                                                             xmlns="http://www.w3.org/2000/svg">
                                                             <path d="M3 6h18" stroke="currentColor" stroke-width="2"
                                                                 stroke-linecap="round" stroke-linejoin="round" />
