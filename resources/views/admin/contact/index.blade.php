@@ -30,7 +30,7 @@
                                             {{ $contact->created_at->format('Y.m.d H:i:s') }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">
                                             <div class="flex items-center gap-3">
-                                                <form action="">
+                                                <form action="" method="POST">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button action="" type="submit"
@@ -42,7 +42,7 @@
                                                         </svg>
                                                     </button>
                                                 </form>
-                                                <form action="">
+                                                <form action="" method="POST" onsubmit="return confirm('本当に削除しますか？')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-500 hover:text-red-700"

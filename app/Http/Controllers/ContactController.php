@@ -26,13 +26,13 @@ class ContactController extends Controller
             // お問い合わせ登録処理
             DB::transaction(function () use ($validated) {
                 Contact::create($validated);
-                Mail::to('syumeikyo@outlook.jp')->send(new ContactAdminMail($validated));
+                Mail::to(config('mail.to.address'))->send(new ContactAdminMail($validated));
             });
 
             return to_route('contact.complete');
         } catch (Exception $e) {
             // エラーログに記録
-            Log::error('お問い合わせ送信エラー：', $e->getMessage());
+            Log::error('お問い合わせ送信エラー：', ['error' => $e->getMessage(), 'exception' => $e,]);
 
             // ユーザーにエラーメッセージを表示
             return back()->withInput()->with('error', 'お問い合わせの送信に失敗しました。');

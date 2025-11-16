@@ -150,7 +150,7 @@
                     <div id="flash-message" class="mb-4 text-right">
                         <div id="flash-inner"
                             class="pl-6 pr-16 py-4 bg-white border-l-4 border-green-500 shadow-md rounded-r-lg inline-block ml-auto
-                            -translate-y-3 opacity-0 transition-opacity duration-500 ease-out">
+                            -translate-y-3 opacity-0 transition-all duration-500 ease-out">
                             <div class="flex items-center">
                                 <span class="inline-block mr-2">
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
