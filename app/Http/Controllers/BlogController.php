@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BlogRequest;
 use App\Models\Blog;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
+    private const BLOGS_PER_PAGE = 12;
     /**
-     * Display a listing of the resource.
+     * （一般用）ブログ一覧画面を表示する。
      */
-    public function index()
+    public function index(BlogRequest $request)
     {
-        //
+        // ブログ記事のクエリを構築
+        $query = Blog::with(['category', 'user', 'cats'])
+            ->orderBy('updated_at', 'desc');
+
+        // カテゴリでフィルタリング(クエリパラメータが存在する場合)
+        $query->when($request->filled('category'), function ($q) use ($request) {
+            $q->where('category_id', $request->category);
+        });
+
+        // ページネーション実行
+        $blogs = $query->paginate(self::BLOGS_PER_PAGE)->withQueryString();
+
+        // すべてのカテゴリを取得（フィルター用）
+        $categories = Category::get(['id', 'name']);
+
+        $currentCategory = $request->category;
+        return view('blogs.index', compact('blogs', 'categories', 'currentCategory'));
     }
 
     /**
