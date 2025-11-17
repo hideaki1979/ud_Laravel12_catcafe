@@ -38,7 +38,7 @@
                             <div class="border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
                                 <div class="relative h-56">
                                     <span
-                                        class="py-2 px-10 mt-56 absolute left-0 bottom-0 text-xs text-gray-400 border border-white bg-gray-100 uppercase">
+                                        class="py-2 px-10 absolute left-0 bottom-0 text-xs text-gray-400 border border-white bg-gray-100 uppercase">
                                         {{ $blog->category ? $blog->category->name : 'カテゴリ' }}
                                     </span>
                                     <a href="#">
