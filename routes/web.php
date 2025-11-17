@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
 
-// ブログ一覧
+// （一般向け）ブログ関連
 Route::get('/blogs', [BlogController::class, 'index'])->name('blogs.index');
+Route::get('/blogs/{blog}', [BlogController::class, 'show'])->name('blogs.show');
 
 // お問い合わせフォーム
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
