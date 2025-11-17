@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
+    private const BLOGS_PER_PAGE = 12;
     /**
      * （一般用）ブログ一覧画面を表示する。
      */
@@ -18,12 +19,12 @@ class BlogController extends Controller
             ->orderBy('updated_at', 'desc');
 
         // カテゴリでフィルタリング(クエリパラメータが存在する場合)
-        if ($request->has('category') && $request->category) {
-            $query->where('category_id', $request->category);
-        }
+        $query->when($request->filled('category'), function ($q) use ($request) {
+            $q->where('category_id', $request->category);
+        });
 
         // ページネーション実行
-        $blogs = $query->paginate(12)->withQueryString();
+        $blogs = $query->paginate(self::BLOGS_PER_PAGE)->withQueryString();
 
         // すべてのカテゴリを取得（フィルター用）
         $categories = Category::all();
