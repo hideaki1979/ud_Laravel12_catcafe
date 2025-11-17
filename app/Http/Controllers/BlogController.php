@@ -3,16 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * （一般用）ブログ一覧画面を表示する。
      */
     public function index()
     {
-        //
+        // カテゴリ、ユーザー、猫ちゃんの情報を含めて取得（N+1問題を回避）
+        $blogs = Blog::with(['category', 'user', 'cats'])
+            ->latest('updated_at')
+            ->paginate(12);
+
+        // すべてのカテゴリを取得（フィルター用）
+        $categories = Category::all();
+
+        return view('blogs.index', compact('blogs', 'categories'));
     }
 
     /**
