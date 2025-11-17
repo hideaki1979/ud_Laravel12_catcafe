@@ -19,9 +19,6 @@
             <div class="my-8 pb-4 border-b">
                 <p class="text-lg">カテゴリ / ねこちゃん</p>
                 <ul class="flex text-center pt-2 flex-wrap">
-                    @php
-                        $currentCategory = request('category');
-                    @endphp
                     <li
                         class="py-1 px-3 mr-3 mb-2 hover:bg-gray-300 cursor-pointer {{ !$currentCategory ? 'bg-gray-200 text-gray-500' : 'bg-gray-100 text-gray-400' }}">
                         <a href="{{ route('blogs.index') }}">全カテゴリ</a>
@@ -59,7 +56,7 @@
                                     <a href="#">
                                         <h1 class="mb-2 text-xl font-semibold font-heading">{{ $blog->title }}</h1>
                                         <p class="mb-6 text-gray-500 leading-relaxed truncate">
-                                            {{ Str::limit(strip_tags($blog->body), 50) }}
+                                            {{ $blog->excerpt }}
                                         </p>
                                     </a>
                                     <div class="flex justify-between items-center">

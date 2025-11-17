@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BlogRequest;
 use App\Models\Blog;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class BlogController extends Controller
     /**
      * （一般用）ブログ一覧画面を表示する。
      */
-    public function index(Request $request)
+    public function index(BlogRequest $request)
     {
         // ブログ記事のクエリを構築
         $query = Blog::with(['category', 'user', 'cats'])
@@ -29,7 +30,8 @@ class BlogController extends Controller
         // すべてのカテゴリを取得（フィルター用）
         $categories = Category::get(['id', 'name']);
 
-        return view('blogs.index', compact('blogs', 'categories'));
+        $currentCategory = $request->category;
+        return view('blogs.index', compact('blogs', 'categories', 'currentCategory'));
     }
 
     /**
