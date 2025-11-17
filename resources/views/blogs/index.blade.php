@@ -19,14 +19,20 @@
             <div class="my-8 pb-4 border-b">
                 <p class="text-lg">カテゴリ / ねこちゃん</p>
                 <ul class="flex text-center pt-2 flex-wrap">
-                    <li
-                        class="py-1 px-3 mr-3 mb-2 hover:bg-gray-300 cursor-pointer {{ !$currentCategory ? 'bg-gray-200 text-gray-500' : 'bg-gray-100 text-gray-400' }}">
+                    <li @class([
+                        'py-1 px-3 mr-3 mb-2 hover:bg-gray-300 cursor-pointer',
+                        'bg-gray-200 text-gray-500' => !$currentCategory,
+                        'bg-gray-100 text-gray-400' => (bool) $currentCategory,
+                    ])>
                         <a href="{{ route('blogs.index') }}">全カテゴリ</a>
 
                     </li>
                     @foreach ($categories as $category)
-                        <li
-                            class="py-1 px-3 mr-3 mb-2 hover:bg-gray-200 cursor-pointer  {{ $currentCategory == $category->id ? 'bg-gray-200 text-gray-500' : 'bg-gray-100 text-gray-400' }}">
+                        <li @class([
+                            'py-1 px-3 mr-3 mb-2 hover:bg-gray-200 cursor-pointer',
+                            'bg-gray-200 text-gray-500' => $currentCategory == $category->id,
+                            'bg-gray-100 text-gray-400' => $currentCategory != $category->id,
+                        ])>
                             <a href="{{ route('blogs.index', ['category' => $category->id]) }}">{{ $category->name }}</a>
                         </li>
                     @endforeach

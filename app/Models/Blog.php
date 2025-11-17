@@ -31,17 +31,13 @@ class Blog extends Model
 
     public function getExcerptAttribute()
     {
-        // HTML Purifierの設定を作成
-        $config = HTMLPurifier_Config::createDefault();
+        // HTML Purifierで本文をサニタイズ
+        $cleanBody = app(HTMLPurifier::class)->purify($this->body);
 
-        // 必要に応じて設定をカスタマイズできます。
-        // 例: 許可するHTMLタグや属性を指定する場合
-        // $config->set('HTML.Allowed', 'p,a[href],b,i,strong,em');
-        // デフォルトでは多くの安全なタグが許可されます。
-        $purifier = new HTMLPurifier($config);
-        $cleanBody = $purifier->purify($this->body);
+        // HTMLタグを除去してプレーンテキストにする
+        $planeText = strip_tags($cleanBody);
 
-        // サニタイズされた本文から抜粋を生成
-        return Str::limit($cleanBody, 50);
+        // プレーンテキストから抜粋を生成
+        return Str::limit($planeText, 50);
     }
 }
