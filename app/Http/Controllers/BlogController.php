@@ -27,7 +27,7 @@ class BlogController extends Controller
         $blogs = $query->paginate(self::BLOGS_PER_PAGE)->withQueryString();
 
         // すべてのカテゴリを取得（フィルター用）
-        $categories = Category::all();
+        $categories = Category::get(['id', 'name']);
 
         return view('blogs.index', compact('blogs', 'categories'));
     }
