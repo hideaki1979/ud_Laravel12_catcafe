@@ -61,7 +61,7 @@
                                 <div class="pt-8 pb-4 px-4">
                                     <a href="#">
                                         <h1 class="mb-2 text-xl font-semibold font-heading">{{ $blog->title }}</h1>
-                                        <p class="mb-6 text-gray-500 leading-relaxed truncate">
+                                        <p class="mb-6 text-gray-500 leading-relaxed">
                                             {{ $blog->excerpt }}
                                         </p>
                                     </a>

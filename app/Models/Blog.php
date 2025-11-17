@@ -35,9 +35,9 @@ class Blog extends Model
         $cleanBody = app(HTMLPurifier::class)->purify($this->body);
 
         // HTMLタグを除去してプレーンテキストにする
-        $planeText = strip_tags($cleanBody);
+        $plainText = strip_tags($cleanBody);
 
         // プレーンテキストから抜粋を生成
-        return Str::limit($planeText, 50);
+        return Str::limit($plainText, 50);
     }
 }
