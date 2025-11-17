@@ -11,12 +11,19 @@ class BlogController extends Controller
     /**
      * （一般用）ブログ一覧画面を表示する。
      */
-    public function index()
+    public function index(Request $request)
     {
-        // カテゴリ、ユーザー、猫ちゃんの情報を含めて取得（N+1問題を回避）
-        $blogs = Blog::with(['category', 'user', 'cats'])
-            ->latest('updated_at')
-            ->paginate(12);
+        // ブログ記事のクエリを構築
+        $query = Blog::with(['category', 'user', 'cats'])
+            ->orderBy('updated_at', 'desc');
+
+        // カテゴリでフィルタリング(クエリパラメータが存在する場合)
+        if ($request->has('category') && $request->category) {
+            $query->where('category_id', $request->category);
+        }
+
+        // ページネーション実行
+        $blogs = $query->paginate(12)->withQueryString();
 
         // すべてのカテゴリを取得（フィルター用）
         $categories = Category::all();
