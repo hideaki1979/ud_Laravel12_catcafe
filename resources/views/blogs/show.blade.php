@@ -41,9 +41,9 @@
                 </div>
 
                 {{-- メイン画像 --}}
-                @if ($blog->name)
+                @if ($blog->image)
                     <div class="mb-8 rounded-lg overflow-hidden">
-                        <img class="w-full h-auto object-cover" src="{{ asset('storage/' . $blog->image) }}"
+                        <img class="w-80 h-80 object-cover mx-auto" src="{{ asset('storage/' . $blog->image) }}"
                             alt="{{ $blog->title }}">
                     </div>
                 @endif
@@ -71,7 +71,7 @@
 
                             <div class="flex-grow">
                                 <h3 class="text-lg font-semibold mb-2">
-                                    {{ $blog->user->introduction ? Str::before($blog->user->introduction, 'で') . 'で' : '' }}{{ $blog->user->name }}
+                                    {{ $blog->user->name }}
                                 </h3>
                                 <p class="text-gray-600 text-sm leading-relaxed">
                                     {{ $blog->user->introduction ?? '説明テキストが入ります説明テキストが入ります説明テキストが入ります。' }}
@@ -128,7 +128,7 @@
                         </div>
 
                         {{-- もっと見るボタン --}}
-                        @if ($blog->user && $blog->user->blogs->count() > 4)
+                        @if ($blog->user && $blog->user->blogs_count > 4)
                             <div class="text-center mt-8">
                                 <a href="{{ route('blogs.index') }}"
                                     class="inline-block border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-12 py-3 rounded-md transition-colors">

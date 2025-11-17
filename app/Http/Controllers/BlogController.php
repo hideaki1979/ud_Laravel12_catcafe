@@ -56,10 +56,10 @@ class BlogController extends Controller
     public function show(Blog $blog)
     {
         // ブログ記事の詳細情報を取得（リレーションも含む）
-        $blog->load(['category', 'user', 'cats']);
+        $blog->load(['category', 'user' => fn($query) => $query->withCount('blogs'), 'cats']);
 
         // 同じ著者の他の記事を3件取得（現在の記事を除く）
-        $otherBlogs = Blog::with(['category', 'cats'])
+        $otherBlogs = Blog::with(['category', 'cats', 'user'])
             ->where('user_id', $blog->user_id)
             ->where('id', '!=', $blog->id)
             ->orderBy('updated_at', 'desc')
