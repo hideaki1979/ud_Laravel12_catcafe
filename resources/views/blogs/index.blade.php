@@ -49,7 +49,7 @@
                                         class="py-2 px-10 absolute left-0 bottom-0 text-xs text-gray-400 border border-white bg-gray-100 uppercase">
                                         {{ $blog->category ? $blog->category->name : 'カテゴリ' }}
                                     </span>
-                                    <a href="#">
+                                    <a href="{{ route('blogs.show', $blog) }}">
                                         <img class="w-full h-56 object-cover"
                                             src="{{ $blog->image ? asset('storage/' . $blog->image) : asset('storage/dummy.jpg') }}"
                                             alt="{{ $blog->title }}">
@@ -59,7 +59,7 @@
                                     </time>
                                 </div>
                                 <div class="pt-8 pb-4 px-4">
-                                    <a href="#">
+                                    <a href="{{ route('blogs.show', $blog) }}">
                                         <h1 class="mb-2 text-xl font-semibold font-heading">{{ $blog->title }}</h1>
                                         <p class="mb-6 text-gray-500 leading-relaxed">
                                             {{ $blog->excerpt }}
