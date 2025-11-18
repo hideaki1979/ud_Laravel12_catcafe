@@ -15,7 +15,12 @@ document.addEventListener('DOMContentLoaded', function () {
             this.textContent = '読み込み中...';
 
             fetch(url)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    response.json();
+                })
                 .then(data => {
                     // 取得したブログをDOMに追加
                     authorBlogsContainer.insertAdjacentHTML('beforeend', data.html);

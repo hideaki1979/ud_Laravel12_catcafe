@@ -115,7 +115,8 @@ class BlogController extends Controller
         $blogsToReturn = $otherBlogs->take(self::AUTHOR_BLOGS_PER_PAGE);
 
         // BladeパーシャルをレンダリングしてHTMLを生成
-        $html = $blogsToReturn->map(fn($otherBlog) => view('blogs._card', ['blog' => $otherBlog])->render())->implode('');
+        // $html = $blogsToReturn->map(fn($otherBlog) => view('blogs._card', ['blog' => $otherBlog])->render())->implode('');
+        $html = view()->renderEach('blogs._card', $blogsToReturn, 'blog');
 
         // JSON形式で返却
         return response()->json([
