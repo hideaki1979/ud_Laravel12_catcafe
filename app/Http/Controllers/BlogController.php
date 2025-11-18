@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 class BlogController extends Controller
 {
     private const BLOGS_PER_PAGE = 12;
+    private const AUTHOR_BLOGS_PER_PAGE = 3;
     /**
      * （一般用）ブログ一覧画面を表示する。
      */
@@ -67,7 +68,7 @@ class BlogController extends Controller
                 ->where('user_id', $blog->user_id)
                 ->where('id', '!=', $blog->id)
                 ->orderBy('updated_at', 'desc')
-                ->limit(3)
+                ->limit(self::AUTHOR_BLOGS_PER_PAGE)
                 ->get();
         }
 
@@ -103,8 +104,7 @@ class BlogController extends Controller
      */
     public function loadMoreAuthorBlogs(Request $request, Blog $blog)
     {
-        $offset = $request->input('offset', 3);
-        $limit = 3;
+        $offset = $request->input('offset', self::AUTHOR_BLOGS_PER_PAGE);
 
         // 同じ著者の他の記事を取得（現在の記事を除く）
         $otherBlogs = $blog->user ? Blog::with(['category', 'cats', 'user'])
@@ -112,17 +112,24 @@ class BlogController extends Controller
             ->where('id', '!=', $blog->id)
             ->orderBy('updated_at', 'desc')
             ->skip($offset)
-            ->limit($limit + 1)
+            ->limit(self::AUTHOR_BLOGS_PER_PAGE + 1)
             ->get() : collect();
 
         // 取得した件数がlimit+1なら、まだ続きがある
-        $hasMore = $otherBlogs->count() > $limit;
+        $hasMore = $otherBlogs->count() > self::AUTHOR_BLOGS_PER_PAGE;
         // 実際に返すのはlimit件のみ
-        $blogsToReturn = $otherBlogs->take($limit);
+        $blogsToReturn = $otherBlogs->take(self::AUTHOR_BLOGS_PER_PAGE);
+
+        $html = '';
+        foreach ($blogsToReturn as $otherBlog) {
+            // BladeパーシャルをレンダリングしてHTMLを生成
+            $html .= view('blogs._card', ['blog' => $otherBlog])->render();
+        }
 
         // JSON形式で返却
         return response()->json([
-            'blogs' => BlogResource::collection($blogsToReturn),
+            'html' => $html,
+            'blogs_count' => $blogsToReturn->count(),
             'has_more' => $hasMore,
         ]);
     }
