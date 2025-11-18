@@ -114,9 +114,8 @@ class BlogController extends Controller
         // 実際に返すのはlimit件のみ
         $blogsToReturn = $otherBlogs->take(self::AUTHOR_BLOGS_PER_PAGE);
 
-        $html = '';
-            // BladeパーシャルをレンダリングしてHTMLを生成
-            $html .= $blogsToReturn->map(fn($otherBlog) => view('blogs._card', ['blog' => $otherBlog]))->render()->implode();
+        // BladeパーシャルをレンダリングしてHTMLを生成
+        $html = $blogsToReturn->map(fn($otherBlog) => view('blogs._card', ['blog' => $otherBlog])->render())->implode('');
 
         // JSON形式で返却
         return response()->json([
