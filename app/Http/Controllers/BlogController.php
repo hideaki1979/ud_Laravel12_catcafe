@@ -64,10 +64,7 @@ class BlogController extends Controller
 
         if ($blog->user_id) {
             // 同じ著者の他の記事を3件取得（現在の記事を除く）
-            $otherBlogs = Blog::with(['category', 'cats', 'user'])
-                ->where('user_id', $blog->user_id)
-                ->where('id', '!=', $blog->id)
-                ->orderBy('updated_at', 'desc')
+            $otherBlogs = $this->getOtherBlogsByAuthorQuery($blog)
                 ->limit(self::AUTHOR_BLOGS_PER_PAGE)
                 ->get();
         }
@@ -107,10 +104,7 @@ class BlogController extends Controller
         $offset = $request->input('offset', self::AUTHOR_BLOGS_PER_PAGE);
 
         // 同じ著者の他の記事を取得（現在の記事を除く）
-        $otherBlogs = $blog->user ? Blog::with(['category', 'cats', 'user'])
-            ->where('user_id', $blog->user_id)
-            ->where('id', '!=', $blog->id)
-            ->orderBy('updated_at', 'desc')
+        $otherBlogs = $blog->user ? $this->getOtherBlogsByAuthorQuery($blog)
             ->skip($offset)
             ->limit(self::AUTHOR_BLOGS_PER_PAGE + 1)
             ->get() : collect();
@@ -121,10 +115,8 @@ class BlogController extends Controller
         $blogsToReturn = $otherBlogs->take(self::AUTHOR_BLOGS_PER_PAGE);
 
         $html = '';
-        foreach ($blogsToReturn as $otherBlog) {
             // BladeパーシャルをレンダリングしてHTMLを生成
-            $html .= view('blogs._card', ['blog' => $otherBlog])->render();
-        }
+            $html .= $blogsToReturn->map(fn($otherBlog) => view('blogs._card', ['blog' => $otherBlog]))->render()->implode();
 
         // JSON形式で返却
         return response()->json([
@@ -132,5 +124,13 @@ class BlogController extends Controller
             'blogs_count' => $blogsToReturn->count(),
             'has_more' => $hasMore,
         ]);
+    }
+
+    private function getOtherBlogsByAuthorQuery(Blog $blog)
+    {
+        return Blog::with(['category', 'cats', 'user'])
+            ->where('user_id', $blog->user_id)
+            ->where('id', '!=', $blog->id)
+            ->orderBy('updated_at', 'desc');
     }
 }

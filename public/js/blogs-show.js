@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function () {
             const blogId = this.getAttribute('data-blog-id');
-            const offset = parseInt(this.getAttribute('data-offset'));
+            const offset = parseInt(this.getAttribute('data-offset'), 10);
             const url = `/api/blogs/${blogId}/author-blogs?offset=${offset}`;
 
             // ボタンを無効化
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     authorBlogsContainer.insertAdjacentHTML('beforeend', data.html);
 
                     // offsetを更新
-                    const newOffset = offset + data.blogs.length;
+                    const newOffset = offset + data.blogs_count;
                     loadMoreBtn.setAttribute('data-offset', newOffset);
 
                     // これ以上ブログがない場合はボタンを非表示
