@@ -17,32 +17,71 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    // 取得したブログをDOMに追加
                     data.blogs.forEach(function (blog) {
-                        const blogHtml = `
-                            <div class="w-full md:w-1/3 p-3">
-                                <article class="border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow h-full">
-                                    <a href="${blog.url}">
-                                        <div class="relative h-48">
-                                            <img class="w-full h-48 object-cover" src="${blog.image}" alt="${blog.title}">
-                                        </div>
-                                    </a>
-                                    <div class="p-4">
-                                        ${blog.category ? `<span class="text-xs text-gray-400 bg-gray-100 py-2 px-3">${blog.category}</span>` : ''}
-                                        <a href="${blog.url}">
-                                            <h3 class="text-lg font-semibold mt-4 mb-2">${blog.title}</h3>
-                                            <p class="text-gray-500 text-sm mb-4">${blog.excerpt}</p>
-                                        </a>
-                                        <div class="flex flex-wrap gap-2">
-                                            ${blog.cats.map(cat => `<span class="bg-gray-100 text-gray-400 text-xs py-1 px-2">#${cat}</span>`).join('')}
-                                        </div>
-                                        <div class="mt-3 text-right text-sm font-semibold">${blog.user_name}</div>
-                                    </div>
-                                </article>
-                            </div>
-                        `;
-                        authorBlogsContainer.insertAdjacentHTML('beforeend', blogHtml);
+                        // 取得したブログをDOMに追加
+                        const blogCardWrapper = document.createElement('div');
+                        blogCardWrapper.className = 'w-full md:w-1/3 p-3';
+
+                        const article = document.createElement('article');
+                        article.classList = 'border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow h-full';
+
+                        const linkImage = document.createElement('a');
+                        linkImage.href = blog.url;
+
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'relative h-48';
+
+                        const img = document.createElement('img');
+                        img.className = 'w-full h-48 object-cover';
+                        img.src = blog.image;
+                        img.alt = blog.title;
+
+                        imageContainer.appendChild(img);
+                        linkImage.appendChild(imageContainer);
+                        article.appendChild(linkImage);
+
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'p-4';
+
+                        if (blog.category) {
+                            const categorySpan = document.createElement('span');
+                            categorySpan.className = 'text-xs text-gray-400 bg-gray-100 py-2 px-3';
+
+                            categorySpan.textContent = blog.category;
+                            contentDiv.appendChild(categorySpan);
+                        }
+
+                        const linkTitleExcerpt = document.createElement('a');
+                        linkTitleExcerpt.href = blog.url;
+
+                        const h3 = document.createElement('h3');
+                        h3.className = 'text-lg font-semibold mt-4 mb-2';
+                        h3.textContent = blog.title;
+                        const pExcerpt = document.createElement('p');
+                        pExcerpt.className = 'text-gray-500 text-sm mb-4';
+                        pExcerpt.textContent = blog.excerpt;
+
+                        linkTitleExcerpt.appendChild(h3);
+                        linkTitleExcerpt.appendChild(pExcerpt);
+                        contentDiv.appendChild(linkTitleExcerpt);
+                        const catsDiv = document.createElement('div');
+                        catsDiv.className = 'flex flex-wrap gap-2';
+                        blog.cats.forEach(function (cat) {
+                            const catSpan = document.createElement('span');
+                            catSpan.className = 'bg-gray-100 text-gray-400 text-xs py-1 px-2';
+                            catSpan.textContent = `#${cat}`;
+                            catsDiv.appendChild(catSpan);
+                        });
+                        contentDiv.appendChild(catsDiv);
+                        const userNameDiv = document.createElement('div');
+                        userNameDiv.className = 'mt-3 text-right text-sm font-semibold';
+                        userNameDiv.textContent = blog.user_name;
+                        contentDiv.appendChild(userNameDiv);
+                        article.appendChild(contentDiv);
+                        blogCardWrapper.appendChild(article);
+                        authorBlogsContainer.appendChild(blogCardWrapper);
                     });
+
 
                     // offsetを更新
                     const newOffset = offset + data.blogs.length;

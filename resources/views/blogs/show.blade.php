@@ -128,12 +128,11 @@
                         </div>
 
                         {{-- もっと見るボタン --}}
-                        @if ($blog->user && $blog->user->blogs_count > 4)
+                        @if ($otherBlogs->isNotEmpty() && $blog->user && $blog->user->blogs_count > 3)
                             <div id="load-more-container" class="text-center mt-8">
                                 <button id="load-more-btn" data-blog-id="{{ $blog->id }}"
-                                    deta-user-id="{{ $blog->user_id }}" data-offset="3"
+                                    data-user-id="{{ $blog->user_id }}" data-offset="3"
                                     class="inline-block border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-12 py-3 rounded-md transition-colors">
-                                    >
                                     もっと見る
                                 </button>
                             </div>
@@ -151,7 +150,7 @@
             </article>
         </div>
     </section>
-    @if ($otherBlogs->isNotEmpty() && $blog->user && $blog->user->blogs_count > 4)
+    @if ($otherBlogs->isNotEmpty() && $blog->user && $blog->user->blogs_count > 3)
         @push('scripts')
             <script src="{{ asset('js/blogs-show.js') }}"></script>
         @endpush

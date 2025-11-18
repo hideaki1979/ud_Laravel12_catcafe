@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BlogRequest;
+use App\Http\Resources\BlogResource;
 use App\Models\Blog;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -58,13 +59,17 @@ class BlogController extends Controller
         // ブログ記事の詳細情報を取得（リレーションも含む）
         $blog->load(['category', 'user' => fn($query) => $query->withCount('blogs'), 'cats']);
 
-        // 同じ著者の他の記事を3件取得（現在の記事を除く）
-        $otherBlogs = Blog::with(['category', 'cats', 'user'])
-            ->where('user_id', $blog->user_id)
-            ->where('id', '!=', $blog->id)
-            ->orderBy('updated_at', 'desc')
-            ->limit(3)
-            ->get();
+        $otherBlogs = collect();
+
+        if ($blog->user_id) {
+            // 同じ著者の他の記事を3件取得（現在の記事を除く）
+            $otherBlogs = Blog::with(['category', 'cats', 'user'])
+                ->where('user_id', $blog->user_id)
+                ->where('id', '!=', $blog->id)
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
 
         return view('blogs.show', compact('blog', 'otherBlogs'));
     }
@@ -102,30 +107,23 @@ class BlogController extends Controller
         $limit = 3;
 
         // 同じ著者の他の記事を取得（現在の記事を除く）
-        $otherBlogs = Blog::with(['category', 'cats', 'user'])
+        $otherBlogs = $blog->user ? Blog::with(['category', 'cats', 'user'])
             ->where('user_id', $blog->user_id)
             ->where('id', '!=', $blog->id)
             ->orderBy('updated_at', 'desc')
-            ->limit($limit)
-            ->get();
+            ->skip($offset)
+            ->limit($limit + 1)
+            ->get() : collect();
+
+        // 取得した件数がlimit+1なら、まだ続きがある
+        $hasMore = $otherBlogs->count() > $limit;
+        // 実際に返すのはlimit件のみ
+        $blogsToReturn = $otherBlogs->take($limit);
 
         // JSON形式で返却
         return response()->json([
-            'blogs' => $otherBlogs->map(function ($otherBlog) {
-                return [
-                    'id' => $otherBlog->id,
-                    'title' => $otherBlog->title,
-                    'excerpt' => $otherBlog->excerpt,
-                    'image' => $otherBlog->image ? asset('storage/' . $otherBlog->image) : asset('storage/dummy.jpg'),
-                    'category' => $otherBlog->category ? $otherBlog->category->name : null,
-                    'cats' => $otherBlog->cats->take(3)->map(function ($cat) {
-                        return $cat->name;
-                    })->toArray(),
-                    'user_name' => $otherBlog->user ? $otherBlog->user->name : '店長',
-                    'url' => route('blogs.show', $otherBlog),
-                ];
-            }),
-            'has_more' => $otherBlogs->count() === $limit,
+            'blogs' => BlogResource::collection($blogsToReturn),
+            'has_more' => $hasMore,
         ]);
     }
 }
