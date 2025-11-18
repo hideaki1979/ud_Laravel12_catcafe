@@ -92,4 +92,40 @@ class BlogController extends Controller
     {
         //
     }
+
+    /**
+     * Ajax用：著者のブログを追加で取得する
+     */
+    public function loadMoreAuthorBlogs(Request $request, Blog $blog)
+    {
+        $offset = $request->input('offset', 3);
+        $limit = 3;
+
+        // 同じ著者の他の記事を取得（現在の記事を除く）
+        $otherBlogs = Blog::with(['category', 'cats', 'user'])
+            ->where('user_id', $blog->user_id)
+            ->where('id', '!=', $blog->id)
+            ->orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get();
+
+        // JSON形式で返却
+        return response()->json([
+            'blogs' => $otherBlogs->map(function ($otherBlog) {
+                return [
+                    'id' => $otherBlog->id,
+                    'title' => $otherBlog->title,
+                    'excerpt' => $otherBlog->excerpt,
+                    'image' => $otherBlog->image ? asset('storage/' . $otherBlog->image) : asset('storage/dummy.jpg'),
+                    'category' => $otherBlog->category ? $otherBlog->category->name : null,
+                    'cats' => $otherBlog->cats->take(3)->map(function ($cat) {
+                        return $cat->name;
+                    })->toArray(),
+                    'user_name' => $otherBlog->user ? $otherBlog->user->name : '店長',
+                    'url' => route('blogs.show', $otherBlog),
+                ];
+            }),
+            'has_more' => $otherBlogs->count() === $limit,
+        ]);
+    }
 }

@@ -64,6 +64,7 @@
         </div>
     </footer>
     <!-- ▼▼▼▼共通フッター▼▼▼▼　-->
+    @stack('scripts')
 </body>
 
 </html>
