@@ -6,12 +6,11 @@ use Aacotroneo\Saml2\Saml2Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
-use function Laravel\Prompts\warning;
 
 class SamlAuthController extends Controller
 {
@@ -61,9 +60,8 @@ class SamlAuthController extends Controller
             if (empty($email)) {
                 // NameID をベースにしたダミーメールアドレスを生成
                 // ユニークで安全な形式にする
-                $email = 'saml_' . md5($samlId) . '@lanekocafe.local';
-                Log:
-                warning('SAML認証: メールアドレスが取得できなかったため、ダミーメールを生成しました', [
+                $email = 'saml_' . hash('sha256', $samlId) . '@lanekocafe.local';
+                Log::warning('SAML認証: メールアドレスが取得できなかったため、ダミーメールを生成しました', [
                     'attributes' => $attributes,
                     'nameId' => $nameId,
                     'samlId' => $samlId,
@@ -83,6 +81,9 @@ class SamlAuthController extends Controller
             // ログイン処理
             Auth::login($user);
 
+            // セッション固定攻撃対策(セッションID再生成)
+            request()->session()->regenerate();
+
             Log::info('SAML認証成功', [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -96,8 +97,7 @@ class SamlAuthController extends Controller
                 ->with('success', 'Keycloakでログインしました。');
         } catch (\Exception $e) {
             Log::error('SAML ACS 例外', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'exception' => $e
             ]);
 
             return redirect()->route('admin.login')
@@ -259,58 +259,70 @@ class SamlAuthController extends Controller
      */
     protected function findOrCreateUser(string $samlId, string $email, string $name, array $attributes): User
     {
-        // 1. SAML ID でユーザーを検索（最優先）
-        $user = User::where('saml_id', $samlId)->first();
+        return DB::transaction(function () use ($samlId, $email, $name, $attributes) {
+            // 1. SAML ID でユーザーを検索（最優先）
+            $user = User::where('saml_id', $samlId)->lockForUpdate()->first();
 
-        if ($user) {
-            // 既存ユーザーの情報を更新（メールアドレスや名前が変更されている可能性）
-            $user->update([
+            if ($user) {
+                // 既存ユーザーの情報を更新（メールアドレスや名前が変更されている可能性）
+                $user->update([
+                    'name' => $name,
+                    'email' => $email,
+                ]);
+
+                Log::info('SAML認証：既存ユーザーを更新', [
+                    'user_id' => $user->id,
+                    'saml_id' => $samlId,
+                ]);
+
+                return $user;
+            }
+
+            // 2. メールアドレスでユーザーを検索（既存ユーザーとの紐付け）
+            $user = User::where('email', $email)->lockForUpdate()->first();
+
+            if ($user) {
+                // 既にSAML IDが設定されており、かつ今回のSAML IDと異なる場合はエラー
+                if (!empty($user->saml_id) && $user->saml_id !== $samlId) {
+                    Log::warning('SAML認証: メールアドレスが既に他のSAMLアカウントに紐付いています。', [
+                        'email' => $email,
+                        'existing_saml_id' => $user->saml_id,
+                        'new_saml_id' => $samlId,
+                    ]);
+
+                    throw new \Exception('指定されたメールアドレスは、既に他のアカウントで使用されています。');
+                }
+                // 既存ユーザーに SAML ID を追加
+                $user->update([
+                    'saml_id' => $samlId,
+                    'name' => $name,
+                ]);
+
+                Log::info('SAML認証: 既存ユーザーにSAML IDを追加', [
+                    'user_id' => $user->id,
+                    'saml_id' => $samlId
+                ]);
+
+                return $user;
+            }
+
+            // 3. 新規ユーザーを作成
+            $user = User::create([
                 'name' => $name,
+                'email' => $email,
+                'saml_id' => $samlId,
+                'password' => Hash::make(Str::random(32)),
+                'image' => '', // デフォルト画像なし
+                'introduction' => '', // デフォルト自己紹介なし
+            ]);
+
+            Log::info('SAML認証: 新規ユーザーを作成', [
+                'user_id' => $user->id,
+                'saml_id' => $samlId,
                 'email' => $email,
             ]);
 
-            Log::info('SAML認証：既存ユーザーを更新', [
-                'user_id' => $user->id,
-                'saml_id' => $samlId,
-            ]);
-
             return $user;
-        }
-
-        // 2. メールアドレスでユーザーを検索（既存ユーザーとの紐付け）
-        $user = User::where('email', $email)->first();
-
-        if ($user) {
-            // 既存ユーザーに SAML ID を追加
-            $user->update([
-                'saml_id' => $samlId,
-                'name' => $name,
-            ]);
-
-            Log::info('SAML認証: 既存ユーザーにSAML IDを追加', [
-                'user_id' => $user->id,
-                'saml_id' => $samlId
-            ]);
-
-            return $user;
-        }
-
-        // 3. 新規ユーザーを作成
-        $user = User::create([
-            'name' => $name,
-            'email' => $email,
-            'saml_id' => $samlId,
-            'password' => bcrypt(Str::random(32)),
-            'image' => '', // デフォルト画像なし
-            'introduction' => '', // デフォルト自己紹介なし
-        ]);
-
-        Log::info('SAML認証: 新規ユーザーを作成', [
-            'user_id' => $user->id,
-            'saml_id' => $samlId,
-            'email' => $email,
-        ]);
-
-        return $user;
+        })
     }
 }

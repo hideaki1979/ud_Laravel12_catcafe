@@ -45,7 +45,7 @@ return $settings = array(
             // Leave blank to use the '{idpName}_acs' route, e.g. 'test_acs'
             'url' => env(
                 'SAML2_' . $this_idp_env_id . '_SP_ACS_URL',
-                env('APP_URL') . '/saml2/keycloak/metadata'
+                ''
             ),
         ),
         // Single Logout Service (SLS) - ログアウト時のエンドポイント
