@@ -55,7 +55,7 @@ return $settings = array(
             // Leave blank to use the '{idpName}_sls' route, e.g. 'test_sls'
             'url' => env(
                 'SAML2_' . $this_idp_env_id . '_SP_SLS_URL',
-                env('APP_URL') . '/saml2/keycloak/sls'
+                ''
             ),
         ),
     ),

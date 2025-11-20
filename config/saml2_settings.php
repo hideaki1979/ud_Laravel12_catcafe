@@ -60,7 +60,8 @@ return $settings = array(
     // e.g X-Forwarded-Proto / HTTP_X_FORWARDED_PROTO. This is useful if
     // your application is running behind a load balancer which terminates
     // SSL.
-    'proxyVars' => false,
+    // 本番環境でロードバランサー（ALB、Nginx、Cloudflare等）を使用する場合は true に設定
+    'proxyVars' => env('SAML2_PROXY_VARS', false),
 
     /**
      * (Optional) Which class implements the route functions.
