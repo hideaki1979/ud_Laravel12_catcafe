@@ -6,6 +6,9 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
@@ -48,3 +51,18 @@ Route::prefix('/admin')
                 Route::post('/login', [AuthController::class, 'login']);
             });
     });
+
+Route::get('/health', function () {
+    try {
+        // データベース接続確認
+        DB::connection()->getPdo();
+
+        // Redis接続確認（使用している場合）
+        Cache::store('redis')->get('health_check');
+
+        return response()->json(['status' => 'healthy'], 200);
+    } catch (\Throwable $e) {
+        Log::error('Health check failed', ['exception' => $e]);
+        return response()->json(['status' => 'unhealthy'], 503);
+    }
+});
