@@ -83,16 +83,15 @@ fi
 echo "Restoring Keycloak database..."
 
 # データベースをドロップして再作成
-docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T keycloak-postgres psql \
-    -U "${KEYCLOAK_DB_USERNAME}" \
-    -c "DROP DATABASE IF EXISTS ${KEYCLOAK_DB_NAME};"
+docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T -e PGPASSWORD="${KEYCLOAK_DB_PASSWORD}" keycloak-postgres sh -c \
+    'psql -U "${KEYCLOAK_DB_USERNAME}" -c "DROP DATABASE IF EXISTS ${KEYCLOAK_DB_NAME};"'
 
-docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T keycloak-postgres psql \
+docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T -e PGPASSWORD="${KEYCLOAK_DB_PASSWORD}" keycloak-postgres psql \
     -U "${KEYCLOAK_DB_USERNAME}" \
     -c "CREATE DATABASE ${KEYCLOAK_DB_NAME};"
 
 # バックアップからリストア
-gunzip < "$KEYCLOAK_BACKUP" | docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T keycloak-postgres psql \
+gunzip < "$KEYCLOAK_BACKUP" | docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T -e PGPASSWORD="${KEYCLOAK_DB_PASSWORD}" keycloak-postgres psql \
     -U "${KEYCLOAK_DB_USERNAME}" \
     "${KEYCLOAK_DB_NAME}"
 
