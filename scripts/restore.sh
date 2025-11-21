@@ -110,9 +110,13 @@ if [ -f "$KEYCLOAK_DATA_BACKUP" ]; then
     # Keycloakを停止
     docker-compose -f "$PROJECT_DIR/compose.prod.yaml" stop keycloak
 
+    # プロジェクト名を取得
+    PROJECT_NAME=${docker-compose -f "$PROJECT_DIR/compose.prod.yaml" config --services | head -1 | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}' 2>/dev/null || echo "cat-cafe"}
+    VOLUME_NAME="${PROJECT_NAME}_keycloak-data"
+
     # データをリストア
     docker run --rm \
-        -v cat-cafe_keycloak-data:/data \
+        -v "${VOLUME_NAME}":/data \
         -v "${BACKUP_DIR}/keycloak":/backup \
         alpine sh -c "rm -rf /data/* && tar xzf /backup/keycloak_data_${BACKUP_DATE}.tar.gz -C /data"
 

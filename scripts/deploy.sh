@@ -148,7 +148,7 @@ else
 fi
 
 # Keycloak ヘルスチェック
-if curl -f -k https://localhost:8443/health/ready > /dev/null 2>&1; then
+if curl -f https://localhost:8443/health/ready > /dev/null 2>&1; then
     echo "✓ Keycloak: Healthy"
 else
     echo "⚠️  Keycloak: Starting (may take a few minutes)"

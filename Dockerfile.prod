@@ -12,9 +12,7 @@ RUN apk add --no-cache \
     zip \
     unzip \
     postgresql-dev \
-    mysql-client \
-    nginx \
-    supervisor
+    mysql-client
 
 # PHP拡張機能のインストール
 RUN docker-php-ext-install \
@@ -85,7 +83,7 @@ USER www-data
 
 # ヘルスチェック
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:9000/health || exit 1
+    CMD SCRIPT_NAME=/health SCRIPT_FILENAME=/health REQUEST_METHOD=GET cgi-fcgi -connect 127.0.0.1:9000  || exit 1
 
 # curlのインストール（ヘルスチェック用）
 RUN apk add --no-cache curl

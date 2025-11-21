@@ -17,7 +17,7 @@
 #   0 3 * * * /path/to/scripts/backup.sh >> /var/log/backup.log 2>&1
 # ============================================
 
-set -e
+set -o pipefail
 
 # 設定
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

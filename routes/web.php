@@ -8,6 +8,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
@@ -60,7 +61,8 @@ Route::get('/health', function () {
         Cache::store('redis')->get('health_check');
 
         return response()->json(['status' => 'healthy'], 200);
-    } catch (\Exception $e) {
-        return response()->json(['status' => 'unhealthy', 'error' => $e->getMessage()], 503);
+    } catch (\Throwable $e) {
+        Log::error('Health check failed', ['exception' => $e]);
+        return response()->json(['status' => 'unhealthy'], 503);
     }
 });

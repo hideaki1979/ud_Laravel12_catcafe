@@ -110,7 +110,8 @@ class SamlAuthController extends Controller
                 ->with('success', 'Keycloakでログインしました。');
         } catch (\Exception $e) {
             Log::error('SAML ACS 例外', [
-                'exception' => $e
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return redirect()->route('admin.login')
