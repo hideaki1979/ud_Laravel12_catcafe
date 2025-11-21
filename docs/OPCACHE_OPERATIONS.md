@@ -4,12 +4,12 @@
 
 ## 📋 目次
 
--   [OPcache とは](#opcacheとは)
--   [本番環境の設定](#本番環境の設定)
--   [validate_timestamps=0 の重要性](#validate_timestamps0-の重要性)
--   [デプロイ時の OPcache クリア](#デプロイ時のopcacheクリア)
--   [OPcache の監視](#opcacheの監視)
--   [トラブルシューティング](#トラブルシューティング)
+- [OPcache とは](#opcacheとは)
+- [本番環境の設定](#本番環境の設定)
+- [validate_timestamps=0 の重要性](#validate_timestamps0-の重要性)
+- [デプロイ時の OPcache クリア](#デプロイ時のopcacheクリア)
+- [OPcache の監視](#opcacheの監視)
+- [トラブルシューティング](#トラブルシューティング)
 
 ---
 
@@ -25,8 +25,8 @@ OPcache（Opcode Cache）は、PHP スクリプトのコンパイル結果をメ
 
 ### デメリット
 
--   ⚠️ メモリ使用量の増加
--   ⚠️ ファイル変更が即座に反映されない（設定による）
+- ⚠️ メモリ使用量の増加
+- ⚠️ ファイル変更が即座に反映されない（設定による）
 
 ---
 

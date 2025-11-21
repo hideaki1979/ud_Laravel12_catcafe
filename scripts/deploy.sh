@@ -52,8 +52,9 @@ if [ -f "keycloak_idp_settings_prod.php" ]; then
     echo "✓ SAML config switched to production"
     ls -la keycloak_idp_settings.php
 else
-    echo "⚠️  Warning: keycloak_idp_settings_prod.php not found"
-    echo "  Using existing keycloak_idp_settings.php"
+    echo "❌ Error: keycloak_idp_settings_prod.php not found"
+    echo "Cannot proceed with production deployment without prod config"
+    exit 1
 fi
 cd "$PROJECT_DIR"
 

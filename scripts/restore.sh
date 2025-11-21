@@ -111,7 +111,7 @@ if [ -f "$KEYCLOAK_DATA_BACKUP" ]; then
     docker-compose -f "$PROJECT_DIR/compose.prod.yaml" stop keycloak
 
     # プロジェクト名を取得
-    PROJECT_NAME=${docker-compose -f "$PROJECT_DIR/compose.prod.yaml" config --services | head -1 | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}' 2>/dev/null || echo "cat-cafe"}
+    PROJECT_NAME=$(docker-compose -f "$PROJECT_DIR/compose.prod.yaml" config --services | head -1 | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}' 2>/dev/null || echo "cat-cafe")
     VOLUME_NAME="${PROJECT_NAME}_keycloak-data"
 
     # データをリストア
