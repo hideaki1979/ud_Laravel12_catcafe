@@ -45,8 +45,10 @@ echo "==================================="
 
 # 1. MySQLバックアップ
 echo "Backing up MySQL database..."
-docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T mysql mysqldump \
-    -u root -p"${DB_PASSWORD}" \
+docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T\
+    -e MYSQL_PWD="${DB_PASSWORD}" \
+    mysql mysqldump \
+    -u root \
     --single-transaction \
     --routines \
     --triggers \
@@ -110,19 +112,19 @@ fi
 # 5. S3へのアップロード（オプション）
 if [ -n "$AWS_BACKUP_BUCKET" ]; then
     echo "Uploading backups to S3..."
-    
+
     aws s3 cp "${BACKUP_DIR}/mysql/mysql_${DATE}.sql.gz" \
         "s3://${AWS_BACKUP_BUCKET}/mysql/" --storage-class STANDARD_IA
-    
+
     aws s3 cp "${BACKUP_DIR}/keycloak/keycloak_${DATE}.sql.gz" \
         "s3://${AWS_BACKUP_BUCKET}/keycloak/" --storage-class STANDARD_IA
-    
+
     aws s3 cp "${BACKUP_DIR}/keycloak/keycloak_data_${DATE}.tar.gz" \
         "s3://${AWS_BACKUP_BUCKET}/keycloak/" --storage-class STANDARD_IA
-    
+
     aws s3 cp "${BACKUP_DIR}/storage/storage_${DATE}.tar.gz" \
         "s3://${AWS_BACKUP_BUCKET}/storage/" --storage-class STANDARD_IA
-    
+
     echo "✓ S3 upload completed"
 fi
 

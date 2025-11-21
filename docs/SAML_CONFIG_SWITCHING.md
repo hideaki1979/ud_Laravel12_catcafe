@@ -14,36 +14,78 @@ config/saml2/
 
 本番環境では、セキュリティ要件を満たすために専用の設定ファイルを使用する必要があります。
 
-### 方法1: シンボリックリンクによる切り替え（推奨）
+> 🎯 **推奨**: `scripts/deploy.sh` を使用した自動切り替え（方法1）が最も安全で確実です。
 
-本番環境デプロイ時にシンボリックリンクを作成します。
+---
+
+### 方法1: デプロイスクリプト経由（✅ 最推奨）
+
+**最も推奨される方法**です。`scripts/deploy.sh` を実行すると、自動的に本番環境用設定に切り替えられます。
 
 ```bash
-# 本番環境デプロイ時に実行
-cd config/saml2
-
-# 開発環境用ファイルをバックアップ
-mv keycloak_idp_settings.php keycloak_idp_settings_dev.php
-
-# 本番環境用ファイルへのシンボリックリンクを作成
-ln -s keycloak_idp_settings_prod.php keycloak_idp_settings.php
-
-# 確認
-ls -la keycloak_idp_settings.php
-# 出力例: keycloak_idp_settings.php -> keycloak_idp_settings_prod.php
+# デプロイスクリプトの実行
+./scripts/deploy.sh
 ```
 
-### 方法2: ファイルのコピー
+デプロイスクリプトは以下を自動で実行します：
+- ✅ 本番環境用設定ファイルの存在確認
+- ✅ 既存ファイルのバックアップ
+- ✅ シンボリックリンクの作成
+- ✅ エラーハンドリング
+
+### 方法2: 手動でシンボリックリンク作成
+
+デプロイスクリプトを使わない場合、手動で切り替えることもできます。
 
 ```bash
 # 本番環境デプロイ時に実行
 cd config/saml2
+
+# ファイルが存在するか確認
+if [ -f "keycloak_idp_settings_prod.php" ]; then
+    # 既存のシンボリックリンクを削除
+    if [ -L "keycloak_idp_settings.php" ]; then
+        rm keycloak_idp_settings.php
+    # 既存のファイルをバックアップ
+    elif [ -f "keycloak_idp_settings.php" ]; then
+        mv keycloak_idp_settings.php keycloak_idp_settings_dev.php.bak
+    fi
+    
+    # 本番環境用ファイルへのシンボリックリンクを作成
+    ln -sf keycloak_idp_settings_prod.php keycloak_idp_settings.php
+    
+    # 確認
+    ls -la keycloak_idp_settings.php
+    # 出力例: keycloak_idp_settings.php -> keycloak_idp_settings_prod.php
+else
+    echo "Error: keycloak_idp_settings_prod.php not found"
+    exit 1
+fi
+```
+
+> ⚠️ **重要**: 手動切り替え時は必ずファイル存在確認とバックアップを行ってください。
+
+### 方法3: ファイルのコピー
+
+```bash
+# 本番環境デプロイ時に実行
+cd config/saml2
+
+# 既存ファイルをバックアップ
+if [ -f "keycloak_idp_settings.php" ] && [ ! -L "keycloak_idp_settings.php" ]; then
+    cp keycloak_idp_settings.php keycloak_idp_settings_dev.php.bak
+fi
 
 # 本番環境用ファイルをコピー
 cp keycloak_idp_settings_prod.php keycloak_idp_settings.php
+
+# 確認
+cat keycloak_idp_settings.php | head -20
 ```
 
-### 方法3: Docker ボリュームマウント
+> ⚠️ **注意**: この方法はシンボリックリンクではなく実ファイルをコピーするため、元ファイルが更新されても反映されません。方法1または2を推奨します。
+
+### 方法4: Docker ボリュームマウント
 
 `compose.prod.yaml` でボリュームマウントを使用：
 
@@ -54,16 +96,81 @@ services:
             - ./config/saml2/keycloak_idp_settings_prod.php:/var/www/html/config/saml2/keycloak_idp_settings.php:ro
 ```
 
-### 方法4: デプロイスクリプトで自動切り替え
+> 💡 **利点**: コンテナ外から設定を変更できる  
+> ⚠️ **注意**: コンテナ再起動時に自動的に適用される
 
-`scripts/deploy.sh` に以下を追加：
+---
+
+## 💻 デプロイスクリプトの実装詳細（推奨）
+
+`scripts/deploy.sh` には既に堅牢な自動切り替え処理が実装されています。**これが最も推奨される方法**です。
+
+### 実装コード
 
 ```bash
 # 本番環境用SAML設定に切り替え
-if [ "$APP_ENV" = "production" ]; then
-    echo "Switching to production SAML config..."
-    ln -sf keycloak_idp_settings_prod.php config/saml2/keycloak_idp_settings.php
+echo ""
+echo "🔐 Switching to production SAML config..."
+cd "$PROJECT_DIR/config/saml2"
+
+if [ -f "keycloak_idp_settings_prod.php" ]; then
+    # 既存のシンボリックリンクまたはファイルをバックアップ
+    if [ -L "keycloak_idp_settings.php" ]; then
+        echo "  Removing existing symbolic link..."
+        rm keycloak_idp_settings.php
+    elif [ -f "keycloak_idp_settings.php" ] && [ ! -L "keycloak_idp_settings.php" ]; then
+        echo "  Backing up development config..."
+        mv keycloak_idp_settings.php keycloak_idp_settings_dev.php.bak
+    fi
+    
+    # 本番環境用設定へのシンボリックリンクを作成
+    ln -sf keycloak_idp_settings_prod.php keycloak_idp_settings.php
     echo "✓ SAML config switched to production"
+    ls -la keycloak_idp_settings.php
+else
+    echo "⚠️  Warning: keycloak_idp_settings_prod.php not found"
+    echo "  Using existing keycloak_idp_settings.php"
+fi
+cd "$PROJECT_DIR"
+```
+
+**実装の安全機能**:
+- ✅ ファイル存在チェック
+- ✅ 既存のシンボリックリンクの自動削除
+- ✅ 開発環境設定の自動バックアップ（`.bak`）
+- ✅ エラーハンドリングと詳細なログ出力
+- ✅ 検証表示（`ls -la`）
+
+### 使用方法
+
+```bash
+# 本番環境にデプロイ
+./scripts/deploy.sh
+
+# 出力例:
+# 🔐 Switching to production SAML config...
+#   Backing up development config...
+# ✓ SAML config switched to production
+# lrwxr-xr-x 1 user group 32 Nov 21 10:30 keycloak_idp_settings.php -> keycloak_idp_settings_prod.php
+```
+
+> 📝 **注意**: この処理は環境変数に関係なく、デプロイスクリプト実行時に常に本番環境用設定に切り替えます。これにより、設定ミスを防ぎます。
+
+### 手動実行する場合
+
+デプロイスクリプトの該当部分のみを実行することもできます：
+
+```bash
+cd config/saml2
+
+if [ -f "keycloak_idp_settings_prod.php" ]; then
+    if [ -L "keycloak_idp_settings.php" ]; then
+        rm keycloak_idp_settings.php
+    elif [ -f "keycloak_idp_settings.php" ]; then
+        mv keycloak_idp_settings.php keycloak_idp_settings_dev.php.bak
+    fi
+    ln -sf keycloak_idp_settings_prod.php keycloak_idp_settings.php
+    ls -la keycloak_idp_settings.php
 fi
 ```
 

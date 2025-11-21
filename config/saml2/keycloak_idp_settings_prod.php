@@ -4,14 +4,14 @@
  * Keycloak IdP設定ファイル（本番環境用）
  *
  * このファイルはKeycloakをIdP（Identity Provider）として使用するための本番環境用設定です。
- * 
+ *
  * 開発環境用設定との主な違い：
  * - すべての署名・検証機能が有効化
  * - HTTPS必須
  * - SP証明書・秘密鍵が必須
  * - strict モードが強制的に有効
  * - プロキシ対応（ロードバランサー使用時）
- * 
+ *
  * セキュリティ要件：
  * - 本番環境では必ず署名付きメッセージを使用
  * - IdPからのAssertionの署名検証を必須化
@@ -94,7 +94,7 @@ return $settings = array(
         // Keycloakの管理画面から取得: Realm Settings > Keys > RS256 の Certificate をコピー
         // 改行なし、BEGIN/ENDヘッダーなしの本文のみを.envに設定
         'x509cert' => env('SAML2_' . $this_idp_env_id . '_IDP_x509', ''),
-        
+
         // 複数の証明書をサポート（証明書ローテーション時）
         'x509certMulti' => [
             'signing' => [
@@ -170,9 +170,6 @@ return $settings = array(
             'http://www.w3.org/2001/04/xmlenc#sha256'
         ),
 
-        // XML正規化メソッド
-        'signatureAlgorithm' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
-        
         // 署名の検証を厳密に行う
         'rejectUnsolicitedResponsesWithInResponseTo' => true,
     ),
@@ -216,31 +213,31 @@ return $settings = array(
     'lowercaseUrlencoding' => true,
 
     /**
-     * 本番環境セキュリティチェックリスト
-     * 
-     * ✅ strict モードが true に設定されている
-     * ✅ debug モードが false に設定されている
-     * ✅ HTTPS URLを使用している
-     * ✅ SP証明書と秘密鍵が設定されている
-     * ✅ IdP証明書が設定されている
-     * ✅ authnRequestsSigned が true
-     * ✅ wantAssertionsSigned が true
-     * ✅ wantMessagesSigned が true
-     * ✅ 強力な署名アルゴリズム（SHA256）を使用
-     * ✅ プロキシ設定が適切に設定されている
-     */
+ * 本番環境セキュリティチェックリスト
+ *
+ * ✅ strict モードが true に設定されている
+ * ✅ debug モードが false に設定されている
+ * ✅ HTTPS URLを使用している
+ * ✅ SP証明書と秘密鍵が設定されている
+ * ✅ IdP証明書が設定されている
+ * ✅ authnRequestsSigned が true
+ * ✅ wantAssertionsSigned が true
+ * ✅ wantMessagesSigned が true
+ * ✅ 強力な署名アルゴリズム（SHA256）を使用
+ * ✅ プロキシ設定が適切に設定されている
+ */
 
-    /* 
+    /*
      * Interoperable SAML 2.0 Web Browser SSO Profile [saml2int]
      * http://saml2int.org/profile/current
-     * 
+     *
      * 本番環境では以下の設定が推奨されます：
-     * 
+     *
      * 'authnRequestsSigned' => true,     // 本番環境では署名を推奨
      * 'wantAssertionsSigned' => true,    // 必須（なりすまし攻撃防止）
      * 'wantAssertionsEncrypted' => true, // HTTPSと併用でセキュリティ強化
      * 'wantNameIdEncrypted' => false,    // オプション（パフォーマンスと要件次第）
-     * 
+     *
      * 注意事項：
      * - SSL/HTTPSが無効の場合、wantAssertionsEncrypted は必須
      * - 本番環境では必ずHTTPS（SSL/TLS）を使用してください
@@ -252,4 +249,3 @@ return $settings = array(
      */
 
 );
-

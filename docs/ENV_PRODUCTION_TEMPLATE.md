@@ -146,6 +146,11 @@ SAML2_KEYCLOAK_IDP_SL_URL="${SAML2_KEYCLOAK_BASE_URL}/realms/${SAML2_KEYCLOAK_RE
 # SAML セキュリティ設定（本番環境）
 # --------------------------------------------
 
+# メールアドレス運用ポリシー
+# 本番環境: true（必須、推奨）
+# 開発環境: false（オプション、ダミーメール生成）
+SAML2_REQUIRE_EMAIL=true
+
 # SP -> IdP の署名設定（本番環境では true 推奨）
 SAML2_KEYCLOAK_AUTHN_REQUESTS_SIGNED=true
 SAML2_KEYCLOAK_LOGOUT_REQUEST_SIGNED=true

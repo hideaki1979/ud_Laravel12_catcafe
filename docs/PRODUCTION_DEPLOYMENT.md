@@ -7,7 +7,7 @@
 -   [前提条件](#前提条件)
 -   [1. 環境変数の設定](#1-環境変数の設定)
 -   [2. 必要なディレクトリと設定ファイルの作成](#2-必要なディレクトリと設定ファイルの作成)
--   [3. TLS証明書の準備](#3-tls証明書の準備)
+-   [3. TLS 証明書の準備](#3-tls証明書の準備)
 -   [4. データベースの初期化](#4-データベースの初期化)
 -   [5. アプリケーションのデプロイ](#5-アプリケーションのデプロイ)
 -   [6. 動作確認](#6-動作確認)
@@ -20,8 +20,8 @@
 
 -   ✅ Docker と Docker Compose がインストール済み
 -   ✅ ドメイン名の取得（例: `lanekocafe.example.com`、`auth.example.com`）
--   ✅ DNSレコードの設定完了
--   ✅ TLS/SSL証明書の取得（Let's Encryptまたは商用CA）
+-   ✅ DNS レコードの設定完了
+-   ✅ TLS/SSL 証明書の取得（Let's Encrypt または商用 CA）
 -   ✅ 必要なポートの開放（80, 443, 3306, 6379, 8443）
 
 ---
@@ -87,9 +87,10 @@ GRAFANA_ADMIN_PASSWORD=CHANGE_THIS_GRAFANA_PASSWORD
 ```bash
 # Docker設定用ディレクトリ作成
 mkdir -p docker/{nginx/conf.d,keycloak/tls,mysql,postgres,prometheus,grafana/provisioning}
+mkdir -p docker/ssl
 ```
 
-### 2.2 Nginx設定ファイルの作成
+### 2.2 Nginx 設定ファイルの作成
 
 `docker/nginx/nginx.prod.conf`:
 
@@ -126,7 +127,7 @@ http {
     gzip_vary on;
     gzip_proxied any;
     gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml text/javascript 
+    gzip_types text/plain text/css text/xml text/javascript
                application/json application/javascript application/xml+rss;
 
     include /etc/nginx/conf.d/*.conf;
@@ -213,7 +214,7 @@ server {
 }
 ```
 
-### 2.3 MySQL設定ファイルの作成
+### 2.3 MySQL 設定ファイルの作成
 
 `docker/mysql/my.cnf`:
 
@@ -245,7 +246,7 @@ max_binlog_size=100M
 default-character-set=utf8mb4
 ```
 
-### 2.4 PostgreSQL設定ファイルの作成
+### 2.4 PostgreSQL 設定ファイルの作成
 
 `docker/postgres/postgresql.conf`:
 
@@ -282,7 +283,7 @@ log_min_duration_statement = 1000
 shared_preload_libraries = 'pg_stat_statements'
 ```
 
-### 2.5 Prometheus設定ファイルの作成
+### 2.5 Prometheus 設定ファイルの作成
 
 `docker/prometheus/prometheus.yml`:
 
@@ -309,9 +310,9 @@ scrape_configs:
 
 ---
 
-## 3. TLS証明書の準備
+## 3. TLS 証明書の準備
 
-### 3.1 Let's Encrypt証明書の取得
+### 3.1 Let's Encrypt 証明書の取得
 
 ```bash
 # Certbotのインストール
@@ -418,6 +419,60 @@ php artisan view:cache
 
 ---
 
+## 5.3 OPcache 運用（重要）
+
+> ⚠️ **必読**: 本番環境では `validate_timestamps=0` を使用しているため、デプロイ後に必ず OPcache をクリアしてください
+
+### OPcache 設定の確認
+
+`Dockerfile.prod` には以下の OPcache 設定が含まれています：
+
+```dockerfile
+opcache.enable=1
+opcache.memory_consumption=256
+opcache.validate_timestamps=0  # ← 重要: ファイル変更を検知しない
+```
+
+**重要**: `validate_timestamps=0` の設定により、最高のパフォーマンスを実現していますが、**デプロイ後にコンテナを再起動しないと古いコードが実行され続けます**。
+
+### デプロイ後の OPcache クリア方法
+
+デプロイスクリプト（`scripts/deploy.sh`）には自動的にコンテナ再起動が含まれていますが、手動デプロイの場合は以下を実行してください：
+
+#### 方法 1: コンテナ再起動（推奨）
+
+```bash
+# Laravelコンテナの再起動（OPcacheクリア）
+docker-compose -f compose.prod.yaml restart laravel
+
+# 再起動確認
+docker-compose -f compose.prod.yaml ps laravel
+```
+
+#### 方法 2: OPcache パッケージ経由
+
+```bash
+# パッケージのインストール（初回のみ）
+docker-compose -f compose.prod.yaml exec laravel composer require appstract/laravel-opcache
+
+# OPcacheクリア
+docker-compose -f compose.prod.yaml exec laravel php artisan opcache:clear
+```
+
+### OPcache 状態の確認
+
+```bash
+# OPcacheの状態を確認
+docker-compose -f compose.prod.yaml exec laravel php artisan tinker
+
+>>> opcache_get_status()['opcache_statistics']['opcache_hit_rate']
+# 95%以上であれば正常
+```
+
+> 📚 詳細は [OPcache 運用ガイド](./OPCACHE_OPERATIONS.md) を参照してください
+
+---
+
 ## 6. 動作確認
 
 ### 6.1 ヘルスチェック
@@ -436,7 +491,7 @@ docker-compose -f compose.prod.yaml exec mysql mysql -u root -p${DB_PASSWORD} -e
 docker-compose -f compose.prod.yaml exec redis redis-cli -a ${REDIS_PASSWORD} ping
 ```
 
-### 6.2 SAML認証テスト
+### 6.2 SAML 認証テスト
 
 1. ブラウザで `https://lanekocafe.example.com` にアクセス
 2. SAML ログインをテスト
@@ -446,7 +501,7 @@ docker-compose -f compose.prod.yaml exec redis redis-cli -a ${REDIS_PASSWORD} pi
 
 ## 7. 監視設定
 
-### 7.1 Grafanaダッシュボードのセットアップ
+### 7.1 Grafana ダッシュボードのセットアップ
 
 1. `http://localhost:3000` にアクセス
 2. 管理者でログイン（`GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`）
@@ -457,7 +512,7 @@ docker-compose -f compose.prod.yaml exec redis redis-cli -a ${REDIS_PASSWORD} pi
 
 ### 7.2 アラート設定
 
-Prometheusアラートルールを `docker/prometheus/alerts.yml` に作成：
+Prometheus アラートルールを `docker/prometheus/alerts.yml` に作成：
 
 ```yaml
 groups:
@@ -514,7 +569,7 @@ find ${BACKUP_DIR} -name "*.sql.gz" -mtime +${RETENTION_DAYS} -delete
 echo "Backup completed: ${DATE}"
 ```
 
-### 8.2 Cron設定
+### 8.2 Cron 設定
 
 ```bash
 # 毎日午前3時にバックアップ
@@ -551,14 +606,14 @@ sudo chmod -R 775 storage bootstrap/cache
 ## セキュリティチェックリスト
 
 -   [ ] 強力なパスワードを設定した
--   [ ] TLS/SSL証明書が正しく設定されている
+-   [ ] TLS/SSL 証明書が正しく設定されている
 -   [ ] ファイアウォールが設定されている
 -   [ ] 不要なポートが閉じられている
 -   [ ] セキュリティヘッダーが設定されている
 -   [ ] レート制限が設定されている
 -   [ ] 監査ログが有効になっている
 -   [ ] バックアップが正常に動作している
--   [ ] .env.prod がGitにコミットされていない
+-   [ ] .env.prod が Git にコミットされていない
 
 ---
 
@@ -567,4 +622,3 @@ sudo chmod -R 775 storage bootstrap/cache
 -   [Keycloak SAML 設定ガイド](./KEYCLOAK_SAML_SETUP.md)
 -   [Laravel デプロイメントドキュメント](https://laravel.com/docs/deployment)
 -   [Docker Compose 本番環境ベストプラクティス](https://docs.docker.com/compose/production/)
-

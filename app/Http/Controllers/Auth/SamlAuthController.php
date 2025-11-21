@@ -53,23 +53,36 @@ class SamlAuthController extends Controller
             // SAML ID（Keycloak のユニーク ID）- persistent format
             $samlId = $nameId;  // persistent format の場合、NameID が一意の識別子
 
-            // メールアドレスの取得（オプション）
+            // メールアドレスの取得
             $email = $this->getEmailFromAttributes($attributes);
 
-            // メールアドレスが取得できない場合は、NameID からダミーメールを生成
+            // メールアドレスが取得できない場合の処理
             if (empty($email)) {
-                // NameID をベースにしたダミーメールアドレスを生成
-                // ユニークで安全な形式にする
-                $email = 'saml_' . hash('sha256', $samlId) . '@lanekocafe.local';
-                Log::warning('SAML認証: メールアドレスが取得できなかったため、ダミーメールを生成しました', [
+                // 本番環境ではメールアドレスを必須とする（推奨）
+                if (config('saml2.require_email', env('APP_ENV') === 'production')) {
+                    Log::error('SAML認証失敗: メールアドレスが必須です', [
+                        'attributes' => $attributes,
+                        'nameId' => $nameId,
+                        'samlId' => $samlId,
+                        'environment' => env('APP_ENV'),
+                    ]);
+
+                    return redirect()->route('admin.login')
+                        ->with('error', 'ユーザー情報の取得に失敗しました。メールアドレスが見つかりません。管理者に連絡してください。');
+                }
+
+                // 開発環境のみ: ダミーメールアドレスを生成
+                // 注意: 本番環境では使用しないでください
+                $email = $this->generateDummyEmail($samlId);
+
+                Log::warning('SAML認証: メールアドレスが取得できなかったため、ダミーメールを生成しました（開発環境のみ）', [
                     'attributes' => $attributes,
                     'nameId' => $nameId,
                     'samlId' => $samlId,
                     'generated_email' => $email,
+                    'environment' => env('APP_ENV'),
+                    'warning' => '本番環境では Keycloak 側でメールアドレスを必須に設定してください',
                 ]);
-
-                // return redirect()->route('admin.login')
-                //     ->with('error', 'ユーザー情報の取得に失敗しました。メールアドレスが見つかりません。');
             }
 
             // 名前の取得
@@ -256,6 +269,12 @@ class SamlAuthController extends Controller
     /**
      * ユーザーを検索または作成
      * ベストプラクティス: SAML ID による一意の識別を優先
+     *
+     * @param string $samlId SAML ID（一意識別子）
+     * @param string $email メールアドレス
+     * @param string $name 名前
+     * @param array $attributes SAML属性（将来の拡張用: ロール、グループ、カスタム属性など）
+     * @return User
      */
     protected function findOrCreateUser(string $samlId, string $email, string $name, array $attributes): User
     {
@@ -316,13 +335,39 @@ class SamlAuthController extends Controller
                 'introduction' => '', // デフォルト自己紹介なし
             ]);
 
+            // 将来の拡張: SAML属性からロールやグループ情報を取得
+            // 例: $roles = $attributes['Role'] ?? [];
+            // 例: $user->syncRoles($roles);
+
             Log::info('SAML認証: 新規ユーザーを作成', [
                 'user_id' => $user->id,
                 'saml_id' => $samlId,
                 'email' => $email,
+                'attributes' => $attributes, // SAML属性をログに記録（デバッグ用）
             ]);
 
             return $user;
-        })
+        });
+    }
+
+    /**
+     * ダミーメールアドレスを生成（開発環境のみ）
+     *
+     * ⚠️ 本番環境では使用しないでください
+     * 本番環境では Keycloak 側でメールアドレスを必須に設定してください
+     *
+     * @param string $samlId SAML ID
+     * @return string ダミーメールアドレス
+     */
+    protected function generateDummyEmail(string $samlId): string
+    {
+        // 環境に応じたドメインを使用
+        $domain = config('saml2.dummy_email_domain', env('SAML2_DUMMY_EMAIL_DOMAIN', 'lanekocafe.local'));
+
+        // NameID をベースにした一意のダミーメールアドレスを生成
+        // SHA256ハッシュを使用して安全性を確保
+        $hash = hash('sha256', $samlId);
+
+        return "saml_{$hash}@{$domain}";
     }
 }

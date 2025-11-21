@@ -46,7 +46,7 @@ if [ -f "keycloak_idp_settings_prod.php" ]; then
         echo "  Backing up development config..."
         mv keycloak_idp_settings.php keycloak_idp_settings_dev.php.bak
     fi
-    
+
     # 本番環境用設定へのシンボリックリンクを作成
     ln -sf keycloak_idp_settings_prod.php keycloak_idp_settings.php
     echo "✓ SAML config switched to production"
@@ -103,11 +103,16 @@ echo "🔗 Creating storage link..."
 docker-compose -f compose.prod.yaml exec laravel php artisan storage:link
 echo "✓ Storage link created"
 
-# OPcacheのリセット
+# OPcacheのクリアとPHP-FPM再起動
 echo ""
-echo "♻️  Restarting PHP-FPM..."
+echo "♻️  Clearing OPcache and restarting PHP-FPM..."
+echo "  ⚠️  重要: validate_timestamps=0 の設定により、コンテナ再起動が必須です"
+
+# OPcacheをクリアするためにLaravelコンテナを再起動
+# validate_timestamps=0 設定時は、ファイル変更を検知しないため再起動が必要
 docker-compose -f compose.prod.yaml restart laravel
-echo "✓ PHP-FPM restarted"
+
+echo "✓ OPcache cleared and PHP-FPM restarted"
 
 # コンテナの状態確認
 echo ""
@@ -127,7 +132,7 @@ else
 fi
 
 # MySQL ヘルスチェック
-if docker-compose -f compose.prod.yaml exec mysql mysqladmin ping -h localhost --silent > /dev/null 2>&1; then
+if docker-compose -f compose.prod.yaml exec mysql mysqladmin ping -h localhost -u root -p"${DB_PASSWORD}" --silent > /dev/null 2>&1; then
     echo "✓ MySQL: Healthy"
 else
     echo "✗ MySQL: Unhealthy"
@@ -135,7 +140,7 @@ else
 fi
 
 # Redis ヘルスチェック
-if docker-compose -f compose.prod.yaml exec redis redis-cli ping > /dev/null 2>&1; then
+if docker-compose -f compose.prod.yaml exec redis redis-cli -a "${REDIS_PASSWORD}" ping > /dev/null 2>&1; then
     echo "✓ Redis: Healthy"
 else
     echo "✗ Redis: Unhealthy"

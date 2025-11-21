@@ -69,9 +69,8 @@ fi
 
 # 1. MySQLリストア
 echo "Restoring MySQL database..."
-gunzip < "$MYSQL_BACKUP" | docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T mysql mysql \
-    -u root -p"${DB_PASSWORD}" \
-    "${DB_DATABASE}"
+gunzip < "$MYSQL_BACKUP" | docker-compose -f "$PROJECT_DIR/compose.prod.yaml" exec -T mysql sh -c \
+    mysql -u root -p"${MYSQL_ROOT_PASSWORD}" "${DB_DATABASE}"
 
 if [ $? -eq 0 ]; then
     echo "✓ MySQL restore completed"
@@ -107,23 +106,23 @@ fi
 # 3. Keycloakデータディレクトリリストア
 if [ -f "$KEYCLOAK_DATA_BACKUP" ]; then
     echo "Restoring Keycloak data..."
-    
+
     # Keycloakを停止
     docker-compose -f "$PROJECT_DIR/compose.prod.yaml" stop keycloak
-    
+
     # データをリストア
     docker run --rm \
         -v cat-cafe_keycloak-data:/data \
         -v "${BACKUP_DIR}/keycloak":/backup \
         alpine sh -c "rm -rf /data/* && tar xzf /backup/keycloak_data_${BACKUP_DATE}.tar.gz -C /data"
-    
+
     if [ $? -eq 0 ]; then
         echo "✓ Keycloak data restore completed"
     else
         echo "✗ Keycloak data restore failed"
         exit 1
     fi
-    
+
     # Keycloakを再起動
     docker-compose -f "$PROJECT_DIR/compose.prod.yaml" start keycloak
 fi
@@ -131,15 +130,15 @@ fi
 # 4. Storageディレクトリリストア
 if [ -f "$STORAGE_BACKUP" ]; then
     echo "Restoring storage files..."
-    
+
     # 既存のstorageをバックアップ
     if [ -d "$PROJECT_DIR/storage/app" ]; then
         mv "$PROJECT_DIR/storage/app" "$PROJECT_DIR/storage/app.backup.$(date +%Y%m%d_%H%M%S)"
     fi
-    
+
     # バックアップからリストア
     tar xzf "$STORAGE_BACKUP" -C "$PROJECT_DIR"
-    
+
     if [ $? -eq 0 ]; then
         echo "✓ Storage restore completed"
     else

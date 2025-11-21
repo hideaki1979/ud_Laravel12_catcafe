@@ -94,7 +94,7 @@ docker-compose -f compose.prod.yaml ps
 ### ステップ5: アプリケーションの初期化
 
 ```bash
-# デプロイスクリプトの実行
+# デプロイスクリプトの実行（推奨）
 ./scripts/deploy.sh
 
 # または手動で実行:
@@ -102,7 +102,12 @@ docker-compose -f compose.prod.yaml exec laravel php artisan migrate --force
 docker-compose -f compose.prod.yaml exec laravel php artisan config:cache
 docker-compose -f compose.prod.yaml exec laravel php artisan route:cache
 docker-compose -f compose.prod.yaml exec laravel php artisan view:cache
+
+# ⚠️ 重要: OPcacheクリアのためにコンテナを再起動
+docker-compose -f compose.prod.yaml restart laravel
 ```
+
+> ⚠️ **OPcache注意**: 本番環境では `validate_timestamps=0` を使用しているため、デプロイ後は必ずコンテナを再起動してください。詳細は [OPcache運用ガイド](./OPCACHE_OPERATIONS.md) を参照。
 
 ## ✅ 動作確認チェックリスト
 
@@ -148,6 +153,8 @@ curl -f http://localhost:3000/api/health
 -   [ ] レート制限が設定されている
 -   [ ] CSRF 保護が有効になっている
 -   [ ] セッションが HTTPS のみに制限されている
+-   [ ] **Keycloak側でメールアドレスが必須に設定されている**
+-   [ ] **SAML2_REQUIRE_EMAIL=true が設定されている**
 
 ## 📊 監視ダッシュボードへのアクセス
 

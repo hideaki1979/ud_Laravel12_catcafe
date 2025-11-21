@@ -40,7 +40,10 @@ WORKDIR /var/www/html
 # PHPの設定（本番環境用）
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# OPcache設定
+# OPcache設定（本番環境最適化）
+# validate_timestamps=0: 最高のパフォーマンスを実現
+# ⚠️ 重要: デプロイ後は必ずコンテナを再起動してOPcacheをクリアしてください
+# 詳細: docs/OPCACHE_OPERATIONS.md
 RUN echo "opcache.enable=1" >> "$PHP_INI_DIR/conf.d/opcache.ini" \
     && echo "opcache.memory_consumption=256" >> "$PHP_INI_DIR/conf.d/opcache.ini" \
     && echo "opcache.interned_strings_buffer=16" >> "$PHP_INI_DIR/conf.d/opcache.ini" \
@@ -61,11 +64,17 @@ RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
 COPY --chown=www-data:www-data . /var/www/html
 
 # Composer依存関係のインストール（本番環境用）
+USER www-data
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
+
+USER root
 
 # ストレージとキャッシュディレクトリのパーミッション設定
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 非rootユーザーに切り替え
+USER www-data
 
 # フロントエンドアセットのビルド（Node.jsが必要な場合）
 # FROM node:20-alpine AS frontend
@@ -76,7 +85,10 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # ヘルスチェック
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD php artisan inspire || exit 1
+    CMD curl -f http://localhost:9000/health || exit 1
+
+# curlのインストール（ヘルスチェック用）
+RUN apk add --no-cache curl
 
 # ポート公開
 EXPOSE 9000
