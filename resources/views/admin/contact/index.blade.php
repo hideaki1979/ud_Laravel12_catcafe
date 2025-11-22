@@ -4,9 +4,18 @@
     <div class="mx-auto">
         <main class="py-4 px-6">
             <section>
-                <div class="mb-6 py-4 bg-white rounded shadow">
+                <div class="mb-6 py-4 bg-white rounded shadow" id="admin-contact-list"
+                    data-initial-count="{{ $contacts->count() }}">
                     <div class="px-6 pb-4 border-b">
                         <h2 class="text-2xl font-semibold">お問い合わせ一覧</h2>
+                        <div id="contact-live-indicator" class="flex items-center text-sm text-gray-500 gap-2 mt-2">
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 border border-gray-200">
+                                <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+                                リアルタイム監視中
+                            </span>
+                            <span id="new-contact-counter" class="hidden bg-blue-600"></span>
+                        </div>
                     </div>
                     <div class="pt-4 px-4 overflow-x-auto">
                         <table class="w-full text-left">
@@ -19,7 +28,7 @@
                                     <th class="px-4 py-3">操作</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="contact-table-body">
                                 @forelse ($contacts as $contact)
                                     <tr class="@if ($contact->is_read) bg-gray-100 @else bg-white @endif text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors"
                                         role="link" tabindex="0" onkeydown="if(event.key === 'Enter') this.click();"
