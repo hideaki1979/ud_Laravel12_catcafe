@@ -22,7 +22,7 @@ class SamlAuthController extends Controller
         $saml2Auth = app(Saml2Auth::class);
 
         // 認証成功後のリダイレクト先を指定
-        $returnTo = route('admin.blogs.index');
+        $returnTo = route('admin.dashboard');
 
         return $saml2Auth->login($returnTo);
     }
@@ -104,7 +104,7 @@ class SamlAuthController extends Controller
             ]);
 
             // ログイン後のリダイレクト先
-            $redirectUrl = $samlUser->getIntendedUrl() ?? route('admin.blogs.index');
+            $redirectUrl = $samlUser->getIntendedUrl() ?? route('admin.dashboard');
 
             return redirect($redirectUrl)
                 ->with('success', 'Keycloakでログインしました。');

@@ -38,14 +38,14 @@
             <nav
                 class="fixed top-0 left-0 bottom-0 flex flex-col w-3/4 lg:w-80 sm:max-w-xs pt-6 pb-8 bg-gray-800 overflow-y-auto">
                 <h1 class="px-6 pb-6 mb-6 lg:border-b border-gray-700">
-                    <a href="#" class="text-xl text-white font-semibold">管理画面</a>
+                    <a href="{{ route('admin.dashboard') }}" class="text-xl text-white font-semibold">管理画面</a>
                 </h1>
                 <div class="px-4 pb-6">
                     <h3 class="mb-2 text-xs uppercase text-gray-500">メニュー</h3>
                     <ul class="mb-8 text-sm">
                         <li>
                             <a class="flex items-center pl-3 py-3 pr-4 text-gray-50 hover:bg-gray-900 rounded"
-                                href="#">
+                                href="{{ route('admin.dashboard') }}">
                                 <span class="inline-block mr-3">
                                     <svg class="text-gray-600 w-5 h-5" viewbox="0 0 18 18" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
@@ -54,7 +54,7 @@
                                             fill="currentColor"></path>
                                     </svg>
                                 </span>
-                                <span>ユーザ管理</span>
+                                <span>ダッシュボード</span>
                             </a>
                         </li>
                         <li>

@@ -49,7 +49,7 @@ return $settings = array(
     /**
      * Where to redirect after login if no other option was provided
      */
-    'loginRoute' => '/admin/blogs',
+    'loginRoute' => '/admin/dashboard',
 
     /**
      * Where to redirect after login if no other option was provided

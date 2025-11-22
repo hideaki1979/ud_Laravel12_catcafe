@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminBlogController;
 use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\AdminDashboardController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Cache;
@@ -29,6 +30,9 @@ Route::prefix('/admin')
         // ログイン時にアクセス可能
         Route::middleware('auth')
             ->group(function () {
+                // ダッシュボード
+                Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
                 // ブログ関連
                 Route::resource('/blogs', AdminBlogController::class)->except('show');
 
