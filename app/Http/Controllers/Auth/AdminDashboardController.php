@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
+    private const LATEST_CONTACTS_LIMIT = 10;
+
     /**
      * 管理ダッシュボード
      */

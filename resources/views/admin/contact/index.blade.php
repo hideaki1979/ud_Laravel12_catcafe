@@ -8,7 +8,7 @@
                     data-initial-count="{{ $contacts->count() }}">
                     <div class="px-6 pb-4 border-b">
                         <h2 class="text-2xl font-semibold">お問い合わせ一覧</h2>
-                        <div id="contact-live-indecator" class="flex items-center text-sm text-gray-500 gap-2 mt-2">
+                        <div id="contact-live-indicator" class="flex items-center text-sm text-gray-500 gap-2 mt-2">
                             <span
                                 class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 border border-gray-200">
                                 <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
