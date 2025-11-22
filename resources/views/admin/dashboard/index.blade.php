@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="mx-auto space-y-6" id="admin-dashboard" data-latest-contact-count="{{ $latestContacts->count() }}"">
+    <div class="mx-auto space-y-6" id="admin-dashboard" data-latest-contact-count="{{ $latestContacts->count() }}">
         <section class="grid gap-4 md:grid-cols-2">
             <div class="bg-white rounded shadow p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">リアルタイム通知</h2>
