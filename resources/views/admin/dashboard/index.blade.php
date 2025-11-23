@@ -49,10 +49,75 @@
                                 href="{{ route('admin.contacts.show', $contact) }}">詳細</a>
                         </li>
                     @empty
-                        <li class="py-6 text-center text-sm text-gray-500">お問い合わせはまだありません。</li>
+                        <li class="py-6 text-center text-sm text-gray-500" id="no-contacts-message">お問い合わせはまだありません。</li>
                     @endforelse
                 </ul>
             </div>
         </section>
     </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const banner = document.getElementById('contact-alert-banner');
+            const stream = document.getElementById('contact-stream');
+            const noContactsMsg = document.getElementById('no-contacts-message');
+
+            // スクロールボタンの動作
+            document.querySelector('[data-action="scroll-to-list"]')?.addEventListener('click', () => {
+                stream.scrollIntoView({behavior: 'smooth', block: 'start'});
+                banner.hidden = true;
+            });
+
+            // Reverb (Echo) リスナー
+            if (window.Echo) {
+                window.Echo.private('admin.notifications')
+                    .listen('ContactReceived', (e) => {
+                        console.log('お問い合わせ受信：', e.contact);
+
+                        // 通知バナーを表示
+                        banner.hidden = false;
+
+                        // リストの先頭に新しいアイテムを追加
+                        const contact = e.contact;
+                        const detailUrl = `/admin/contacts/${contsct.id}`;
+
+                        // 日時フォーマット (簡易版: YYYY/MM/DD HH:mm)
+                        const date = new Date(contact.created_at);
+                        const formatDate = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString.padStart(2, '0')}`;
+
+                        // 本文の抜粋（120文字）
+                        let bodyPreview = contact.body;
+                        if (bodyPreview.length > 120) {
+                            bodyPreview = bodyPreview.substring(0, 120) + '...';
+                        }
+
+                        const li = document.createElement('li');
+                        li.className = "py-3 flex items-center justify-between gap-4 bg-blue-50 transition-colors duration-1000"; // 新着ハイライト用に背景色付与
+                        li.dataset.contactid = contact.id;
+                        li.innerHTML = `
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">${contact.name}
+                                    <span class="ml-4 text-xs text-gray-500">${formattedDate}</span>
+                                </p>
+                                <p class="text-sm text-gray-600 line-clamp-2">${bodyPreview}</p>
+                            </div>
+                            <a class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                                href="${detailUrl}">詳細</a>
+                        `;
+
+                        // "お問い合わせはまだありません" があれば削除
+                        if (noContactsMsg) {
+                            noContactsMsg.remove();
+                        }
+
+                        stream.insertBefore(li, stream.firstChild);
+
+                        // ハイライトをフェードアウト
+                        setTimeout(() => {
+                            li.classList.remove('bg-blue-100');
+                        }, 300);
+                    });
+            }
+        });
+    </script>
 @endsection
