@@ -11,7 +11,7 @@
                         <div id="contact-live-indicator" class="flex items-center text-sm text-gray-500 gap-2 mt-2">
                             <span
                                 class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 border border-gray-200">
-                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden"></span>
                                 リアルタイム監視中
                             </span>
                             <span id="new-contact-counter"
@@ -33,7 +33,7 @@
                                 @forelse ($contacts as $contact)
                                     <tr class="@if ($contact->is_read) bg-gray-100 @else bg-white @endif text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors"
                                         role="link" tabindex="0" onkeydown="if(event.key === 'Enter') this.click();"
-                                        onclick="window.location = {{route('admin.contacts.show', $contact)}}">
+                                        onclick="window.location = '{{ route('admin.contacts.show', $contact) }}'">
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->name_kana }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-700">{{ $contact->email }}</td>
@@ -83,7 +83,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr id="no-contact-row">
+                                    <tr id="no-contacts-row">
                                         <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">お問い合わせはありません。
                                         </td>
                                     </tr>
@@ -107,7 +107,7 @@
             const noContactsRow = document.getElementById('no-contacts-row');
 
             if (window.Echo) {
-                window.Echo.private('admin.notifications)
+                window.Echo.private('admin.notifications')
                     .listen('ContactReceived', (e) => {
                         console.log('お問い合わせ受信(一覧):', e.contact);
 
@@ -126,7 +126,7 @@
                         tr.className = "bg-blue-50 text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors duration-1000";
                         tr.role = "link";
                         tr.tabIndex = 0;
-                        tr.onclick = () => window.location = dataUrl;
+                        tr.onclick = () => window.location = detailUrl;
                         tr.onkeydown = (event) => { if (event.key === 'Enter') window.location = detailUrl; };
 
                         // CSRFトークン取得（メタタグなどから取得推奨だが、ここでは省略してリロード前提としない操作のみ実装）

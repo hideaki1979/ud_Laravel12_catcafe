@@ -4,6 +4,6 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('admin.notifications', function ($user) {
     // 管理者ユーザーのみリッスン可能
-    // ログイン済みであれば許可（ユーザー権限がある場合はここでチェック）
+    // ログイン済みで、かつ管理者権限がある場合のみ許可
     return $user !== null;
 });

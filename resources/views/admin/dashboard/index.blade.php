@@ -79,11 +79,11 @@
 
                         // リストの先頭に新しいアイテムを追加
                         const contact = e.contact;
-                        const detailUrl = `/admin/contacts/${contsct.id}`;
+                        const detailUrl = `/admin/contacts/${contact.id}`;
 
                         // 日時フォーマット (簡易版: YYYY/MM/DD HH:mm)
                         const date = new Date(contact.created_at);
-                        const formatDate = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString.padStart(2, '0')}`;
+                        const formattedDate = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
                         // 本文の抜粋（120文字）
                         let bodyPreview = contact.body;
@@ -114,8 +114,8 @@
 
                         // ハイライトをフェードアウト
                         setTimeout(() => {
-                            li.classList.remove('bg-blue-100');
-                        }, 300);
+                            li.classList.remove('bg-blue-50');
+                        }, 3000);
                     });
             }
         });

@@ -27,7 +27,7 @@ class ContactController extends Controller
             // お問い合わせ登録処理
             DB::transaction(function () use ($validated) {
                 $contact = Contact::create($validated);
-                Mail::to(config('mail.to.address'))->send(new ContactAdminMail($validated));
+                Mail::to(config('mail.to.address'))->send(new ContactAdminMail($contact));
 
                 // 管理者へのリアルタイム通知イベント発火
                 ContactReceived::dispatch($contact);
