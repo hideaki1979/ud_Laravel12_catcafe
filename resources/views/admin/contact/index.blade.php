@@ -133,9 +133,9 @@
                         // 削除・更新フォームは複雑になるため、新着行には「詳細へ」リンクのみにするか、
                         // あるいはDOM要素を完全に構築する。ここでは一覧表示を優先して構築します。
                         tr.innerHTML = `
-                            <td class="px-4 py-4 text-sm text-gray-700">${contact.name}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">${contact.name_kana}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">${contact.email}</td>
+                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name)}</td>
+                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name_kana)}</td>
+                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.email)}</td>
                             <td class="px-4 py-4 text-sm text-gray-700">${formattedDate}</td>
                             <td class="px-4 py-4 text-sm text-gray-700">
                                 <div class="flex items-center gap-3">
