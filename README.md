@@ -47,7 +47,7 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
 
     ```bash
     git clone <repository-url>
-    cd cat-cafe
+    cd <repository-directory-name>
     ```
 
 2. **依存関係のインストール**
@@ -117,8 +117,8 @@ erDiagram
     blogs {
         string title
         text content
-        integer user_id FK
-        integer category_id FK
+        integer user_id
+        integer category_id
     }
     cats {
         string name
