@@ -56,19 +56,8 @@
         </section>
     </div>
 
+    <script src="/resources/js/utils.js" defer></script>
     <script type="module">
-        // HTML エスケープ関数
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, (m) => map[m]);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const banner = document.getElementById('contact-alert-banner');
             const stream = document.getElementById('contact-stream');
@@ -103,7 +92,7 @@
 
                         const li = document.createElement('li');
                         li.className = "py-3 flex items-center justify-between gap-4 bg-blue-50 transition-colors duration-1000"; // 新着ハイライト用に背景色付与
-                        li.dataset.contactid = contact.id;
+                        li.dataset.contactId = contact.id;
                         li.innerHTML = `
                             <div>
                                 <p class="text-sm font-semibold text-gray-800">${escapeHtml(contact.name)}

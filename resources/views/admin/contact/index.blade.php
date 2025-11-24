@@ -100,19 +100,8 @@
         </main>
     </div>
 
+    <script src="/resources/js/utils.js"></script>
     <script type="module">
-        // HTML エスケープ関数
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, (m) => map[m]);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.getElementById('contact-table-body');
             const newCounter = document.getElementById('new-contact-counter');
@@ -130,7 +119,7 @@
                     // 新着バッジ表示
                     newCounter.classList.remove('hidden');
                     newCounter.textContent = '新着';
-                    setTimeout(() => newCounter.hidden = true, 5000);
+                    setTimeout(() => newCounter.classList.add('hidden'), 5000);
 
                     const detailUrl = `/admin/contacts/${contact.id}`;
                     const date = new Date(contact.created_at);
