@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ContactReceived;
 use App\Http\Requests\ContactRequest;
 use App\Mail\ContactAdminMail;
 use App\Models\Contact;
@@ -25,8 +26,11 @@ class ContactController extends Controller
             // これ以降の行は入力エラーがなかった場合のみ実行されます
             // お問い合わせ登録処理
             DB::transaction(function () use ($validated) {
-                Contact::create($validated);
-                Mail::to(config('mail.to.address'))->send(new ContactAdminMail($validated));
+                $contact = Contact::create($validated);
+                Mail::to(config('mail.to.address'))->send(new ContactAdminMail($contact));
+
+                // 管理者へのリアルタイム通知イベント発火
+                ContactReceived::dispatch($contact);
             });
 
             return to_route('contact.complete');
