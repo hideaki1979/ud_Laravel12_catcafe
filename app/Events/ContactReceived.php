@@ -36,4 +36,12 @@ class ContactReceived implements ShouldBroadcast
             new PrivateChannel('admin.notifications'),
         ];
     }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'ContactReceived';
+    }
 }

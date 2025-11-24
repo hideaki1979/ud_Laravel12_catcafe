@@ -71,9 +71,7 @@
             // Reverb (Echo) リスナー
             if (window.Echo) {
                 window.Echo.private('admin.notifications')
-                    .listen('ContactReceived', (e) => {
-                        console.log('お問い合わせ受信：', e.contact);
-
+                    .listen('.ContactReceived', (e) => {
                         // 通知バナーを表示
                         banner.hidden = false;
 
@@ -93,13 +91,13 @@
 
                         const li = document.createElement('li');
                         li.className = "py-3 flex items-center justify-between gap-4 bg-blue-50 transition-colors duration-1000"; // 新着ハイライト用に背景色付与
-                        li.dataset.contactid = contact.id;
+                        li.dataset.contactId = contact.id;
                         li.innerHTML = `
                             <div>
-                                <p class="text-sm font-semibold text-gray-800">${contact.name}
+                                <p class="text-sm font-semibold text-gray-800">${escapeHtml(contact.name)}
                                     <span class="ml-4 text-xs text-gray-500">${formattedDate}</span>
                                 </p>
-                                <p class="text-sm text-gray-600 line-clamp-2">${bodyPreview}</p>
+                                <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(bodyPreview)}</p>
                             </div>
                             <a class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap"
                                 href="${detailUrl}">詳細</a>
