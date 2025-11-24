@@ -57,6 +57,18 @@
     </div>
 
     <script type="module">
+        // HTML エスケープ関数
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const banner = document.getElementById('contact-alert-banner');
             const stream = document.getElementById('contact-stream');
@@ -71,9 +83,7 @@
             // Reverb (Echo) リスナー
             if (window.Echo) {
                 window.Echo.private('admin.notifications')
-                    .listen('ContactReceived', (e) => {
-                        console.log('お問い合わせ受信：', e.contact);
-
+                    .listen('.ContactReceived', (e) => {
                         // 通知バナーを表示
                         banner.hidden = false;
 
@@ -96,10 +106,10 @@
                         li.dataset.contactid = contact.id;
                         li.innerHTML = `
                             <div>
-                                <p class="text-sm font-semibold text-gray-800">${contact.name}
+                                <p class="text-sm font-semibold text-gray-800">${escapeHtml(contact.name)}
                                     <span class="ml-4 text-xs text-gray-500">${formattedDate}</span>
                                 </p>
-                                <p class="text-sm text-gray-600 line-clamp-2">${bodyPreview}</p>
+                                <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(bodyPreview)}</p>
                             </div>
                             <a class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap"
                                 href="${detailUrl}">詳細</a>

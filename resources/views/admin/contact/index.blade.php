@@ -101,6 +101,18 @@
     </div>
 
     <script type="module">
+        // HTML エスケープ関数
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.getElementById('contact-table-body');
             const newCounter = document.getElementById('new-contact-counter');
@@ -108,56 +120,57 @@
 
             if (window.Echo) {
                 window.Echo.private('admin.notifications')
-                    .listen('ContactReceived', (e) => {
-                        console.log('お問い合わせ受信(一覧):', e.contact);
-
-                        // 新着バッジ表示
-                        newCounter.hidden = false;
-                        setTimeout(() => newCounter.hidden = true, 5000);
-
-                        const contact = e.contact;
-                        const detailUrl = `/admin/contacts/${contact.id}`;
-                        const date = new Date(contact.created_at);
-                        // YYYY.MM.DD HH:mm:ss
-                        const formattedDate = `${date.getFullYear()}.${(date.getMonth()+1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
-
-                        const tr = document.createElement('tr');
-                        // 新規行のクラス設定（未読なのでbg-white）
-                        tr.className = "bg-blue-50 text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors duration-1000";
-                        tr.role = "link";
-                        tr.tabIndex = 0;
-                        tr.onclick = () => window.location = detailUrl;
-                        tr.onkeydown = (event) => { if (event.key === 'Enter') window.location = detailUrl; };
-
-                        // CSRFトークン取得（メタタグなどから取得推奨だが、ここでは省略してリロード前提としない操作のみ実装）
-                        // 削除・更新フォームは複雑になるため、新着行には「詳細へ」リンクのみにするか、
-                        // あるいはDOM要素を完全に構築する。ここでは一覧表示を優先して構築します。
-                        tr.innerHTML = `
-                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name)}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name_kana)}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.email)}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">${formattedDate}</td>
-                            <td class="px-4 py-4 text-sm text-gray-700">
-                                <div class="flex items-center gap-3">
-                                     <!-- 簡易表示: アクションを行うには詳細ページへ遷移推奨 -->
-                                     <a href="${detailUrl}" class="text-blue-600 hover:underline">詳細</a>
-                                </div>
-                            </td>
-                        `;
-
-                        if (noContactsRow) {
-                            noContactsRow.remove();
-                        }
-
-                        // テーブルの先頭に追加
-                        tableBody.insertBefore(tr, tableBody.firstChild);
-
-                        // ハイライト解除
-                        setTimeout(() => {
-                            tr.classList.remove('bg-blue-50');
-                            tr.classList.add('bg-white');
-                        }, 3000);
+                    .listen('.ContactReceived', (e) => {
+                        console.log('お問い合わせ受信:', e.contact);
+                        handleNewContact(e.contact);
                     });
+
+                // 共通処理関数
+                const handleNewContact = (contact) => {
+                    // 新着バッジ表示
+                    newCounter.classList.remove('hidden');
+                    newCounter.textContent = '新着';
+                    setTimeout(() => newCounter.hidden = true, 5000);
+
+                    const detailUrl = `/admin/contacts/${contact.id}`;
+                    const date = new Date(contact.created_at);
+                    // YYYY.MM.DD HH:mm:ss
+                    const formattedDate = `${date.getFullYear()}.${(date.getMonth()+1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+
+                    const tr = document.createElement('tr');
+                    // 新規行のクラス設定（未読なのでbg-white）
+                    tr.className = "bg-blue-50 text-sm border-b hover:bg-gray-200 cursor-pointer transition-colors duration-1000";
+                    tr.role = "link";
+                    tr.tabIndex = 0;
+                    tr.onclick = () => window.location = detailUrl;
+                    tr.onkeydown = (event) => { if (event.key === 'Enter') window.location = detailUrl; };
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.name_kana)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-700">${escapeHtml(contact.email)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-700">${formattedDate}</td>
+                        <td class="px-4 py-4 text-sm text-gray-700">
+                            <div class="flex items-center gap-3">
+                                    <!-- 簡易表示: アクションを行うには詳細ページへ遷移推奨 -->
+                                    <a href="${detailUrl}" class="text-blue-600 hover:underline">詳細</a>
+                            </div>
+                        </td>
+                    `;
+
+                    if (noContactsRow) {
+                        noContactsRow.remove();
+                    }
+
+                    // テーブルの先頭に追加
+                    tableBody.insertBefore(tr, tableBody.firstChild);
+
+                    // ハイライト解除
+                    setTimeout(() => {
+                        tr.classList.remove('bg-blue-50');
+                        tr.classList.add('bg-white');
+                    }, 3000);
+                };
             }
 
         });

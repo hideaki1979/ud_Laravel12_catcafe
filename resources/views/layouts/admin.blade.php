@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
     <link rel="stylesheet" href="/css/admin/tailwind/tailwind.min.css">
@@ -13,6 +14,7 @@
     <script src="/js/main.js"></script>
     <script src="/js/admin/jquery-3.6.0.slim.min.js"></script>
     <script src="/js/admin/select2.min.js"></script>
+    @vite(['resources/js/app.js'])
     <title>管理画面</title>
 </head>
 
