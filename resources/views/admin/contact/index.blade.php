@@ -100,7 +100,6 @@
         </main>
     </div>
 
-    <script src="/resources/js/utils.js"></script>
     <script type="module">
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.getElementById('contact-table-body');

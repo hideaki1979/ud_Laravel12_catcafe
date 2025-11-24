@@ -1,6 +1,6 @@
 
 // HTML エスケープ関数
-function escapeHtml(text) {
+export function escapeHtml(text) {
     const map = {
         '&': '&amp;',
         '<': '&lt;',

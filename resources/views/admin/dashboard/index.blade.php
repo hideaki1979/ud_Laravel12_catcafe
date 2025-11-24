@@ -56,7 +56,6 @@
         </section>
     </div>
 
-    <script src="/resources/js/utils.js" defer></script>
     <script type="module">
         document.addEventListener('DOMContentLoaded', () => {
             const banner = document.getElementById('contact-alert-banner');
