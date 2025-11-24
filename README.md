@@ -1,59 +1,154 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# La NekoCafe
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 概要
 
-## About Laravel
+保護猫カフェ「La NekoCafe」の Web アプリケーションです。
+猫の紹介、ブログ発信、お問い合わせ機能などを提供し、管理画面からはこれらを一元管理することができます。
+SAML 認証を利用した SSO（シングルサインオン）や、Laravel Reverb を用いたリアルタイム通知機能も実装されています。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 機能
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 一般ユーザー向け
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **トップページ**: カフェの紹介、アクセスマップなど。
+-   **ブログ**: お店の様子や猫たちの日常を発信。カテゴリやタグ（猫）による絞り込み閲覧が可能。
+-   **お問い合わせ**: お店への問い合わせフォーム。送信完了後に自動返信メールを送信。
 
-## Learning Laravel
+### 管理者向け
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+-   **ダッシュボード**: サイトの概況確認。
+-   **ブログ管理**: 記事の作成、編集、削除。
+-   **お問い合わせ管理**: 受信したお問い合わせの確認。リアルタイム通知機能により、新規問い合わせを即座に把握可能。
+-   **ユーザー管理**: 管理者アカウントの作成。
+-   **認証機能**: 通常のメールアドレス/パスワード認証に加え、SAML 認証（Keycloak 連携）をサポート。
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 技術スタック
 
-## Laravel Sponsors
+| Category      | Technology                                                                                                                                                                                                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Language**  | <img src="https://www.php.net/images/logos/new-php-logo.svg" alt="PHP" height="40">                                                                                                                                         |
+| **Framework** | <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Laravel.svg" alt="Laravel" height="40">                                                                                                                       |
+| **Frontend**  | <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg" alt="Tailwind CSS" height="30"> <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Vitejs-logo.svg" alt="Vite" height="30"> |
+| **Database**  | <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/SQLite370.svg" alt="SQLite" height="40">                                                                                                                      |
+| **Real-time** | Laravel Reverb, Laravel Echo, Pusher JS                                                                                                                                                                                     |
+| **Auth**      | Laravel SAML2 (aacotroneo/laravel-saml2)                                                                                                                                                                                    |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 環境構築手順
 
-### Premium Partners
+### 前提条件
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+-   PHP 8.2 以上
+-   Composer
+-   Node.js & NPM
 
-## Contributing
+### セットアップ
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **リポジトリのクローン**
 
-## Code of Conduct
+    ```bash
+    git clone <repository-url>
+    cd cat-cafe
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **依存関係のインストール**
 
-## Security Vulnerabilities
+    ```bash
+    composer install
+    npm install
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. **環境変数の設定**
+   `.env.example` をコピーして `.env` を作成します。
 
-## License
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    ※デフォルトでは SQLite を使用するため、DB 接続設定の変更は基本的に不要です。
+
+4. **データベースの準備**
+   SQLite ファイルを作成し、マイグレーションとシーダーを実行します。
+
+    ```bash
+    touch database/database.sqlite
+    php artisan migrate --seed
+    ```
+
+5. **アセットのビルド**
+
+    ```bash
+    npm run build
+    ```
+
+6. **アプリケーションの起動**
+   開発サーバーと Reverb サーバー（リアルタイム通信用）を起動します。
+
+    ```bash
+    # 開発サーバーの起動
+    php artisan serve
+
+    # 別ターミナルでReverbサーバーの起動
+    php artisan reverb:start
+    ```
+
+    ブラウザで `http://localhost:8000` にアクセスしてください。
+
+## プロジェクト構成
+
+### ER 図
+
+```mermaid
+erDiagram
+    users ||--o{ blogs : "writes"
+    categories ||--o{ blogs : "has"
+    blogs }|--|{ cats : "features"
+    contacts {
+        string name
+        string email
+        text message
+    }
+    users {
+        string name
+        string email
+        string password
+        string saml_id
+    }
+    blogs {
+        string title
+        text content
+        integer user_id FK
+        integer category_id FK
+    }
+    cats {
+        string name
+        string breed
+        integer gender
+        date date_of_birth
+        string image
+        string introduction
+    }
+    categories {
+        string name
+    }
+```
+
+### ディレクトリ構成
+
+```
+cat-cafe/
+├── app/                 # アプリケーションのコアロジック (Models, Controllers, etc.)
+├── bootstrap/           # フレームワークの起動スクリプト
+├── config/              # 設定ファイル (SAML, Reverb設定など)
+├── database/            # マイグレーション, シーダー, SQLiteファイル
+├── public/              # 公開ディレクトリ (画像, CSS, JS)
+├── resources/           # ビュー(Blade), 生のCSS/JS
+├── routes/              # ルーティング定義 (web.php, api.php)
+├── storage/             # ログ, キャッシュ, ファイルアップロード先
+├── tests/               # テストコード
+└── vendor/              # Composer依存パッケージ
+```
+
+## ライセンス
+
+このプロジェクトは [MIT ライセンス](https://opensource.org/licenses/MIT) の元で公開されています。
