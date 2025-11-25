@@ -6,6 +6,19 @@
 猫の紹介、ブログ発信、お問い合わせ機能などを提供し、管理画面からはこれらを一元管理することができます。
 SAML 認証を利用した SSO（シングルサインオン）や、Laravel Reverb を用いたリアルタイム通知機能も実装されています。
 
+### 🔐 SSO（シングルサインオン）デモ
+
+このプロジェクトには、**Keycloak + SAML 2.0** を使用した Enterprise SSO 環境が含まれています：
+
+-   **Laravel App**（既存アプリ） - http://localhost
+-   **React SPA**（デモ用、TypeScript） - http://localhost:3000
+-   **Express Backend**（SAML認証サーバー、TypeScript） - http://localhost:3001
+-   **Keycloak**（IdP） - http://localhost:8080
+
+**一度のログインで両方のアプリにアクセス可能**です！React SPAとExpress Backendは**TypeScript**で実装されています。
+
+詳細は [SSO クイックスタートガイド](docs/SSO_QUICKSTART.md) を参照してください。
+
 ## 機能
 
 ### 一般ユーザー向け
@@ -32,6 +45,7 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
 | **Database**  | <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/SQLite370.svg" alt="SQLite" height="40">                                                                                                                      |
 | **Real-time** | Laravel Reverb, Laravel Echo, Pusher JS                                                                                                                                                                                     |
 | **Auth**      | Laravel SAML2 (aacotroneo/laravel-saml2)                                                                                                                                                                                    |
+| **SSO Demo**  | React (TypeScript) + Vite, Node.js Express (TypeScript), passport-saml, Keycloak                                                                                                                                           |
 
 ## 環境構築手順
 
@@ -82,7 +96,23 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
     ```
 
 6. **アプリケーションの起動**
-   開発サーバーと Reverb サーバー（リアルタイム通信用）を起動します。
+
+    **Docker Compose を使用する場合（推奨）：**
+
+    ```bash
+    # すべてのサービスを起動（Laravel、Keycloak、MySQL、SPA等）
+    ./vendor/bin/sail up -d
+    ```
+
+    起動するサービス：
+
+    - Laravel App: http://localhost
+    - Keycloak: http://localhost:8080
+    - React SPA: http://localhost:3000
+    - phpMyAdmin: http://localhost:8888
+    - Mailpit: http://localhost:8025
+
+    **または、個別に起動する場合：**
 
     ```bash
     # 開発サーバーの起動
@@ -93,6 +123,21 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
     ```
 
     ブラウザで `http://localhost:8000` にアクセスしてください。
+
+7. **SSO 環境のセットアップ（オプション）**
+
+    Keycloak を使用した SSO 環境を試す場合：
+
+    ```bash
+    # Keycloak初期設定（初回のみ）
+    # 詳細は docs/SSO_QUICKSTART.md を参照
+    ```
+
+    1. http://localhost:8080 で Keycloak 管理画面にアクセス
+    2. レルム、ユーザー、SAML クライアントを設定
+    3. Laravel と React SPA で SSO 動作確認
+
+    詳しくは [SSO クイックスタートガイド](docs/SSO_QUICKSTART.md) をご覧ください。
 
 ## プロジェクト構成
 
@@ -139,14 +184,29 @@ erDiagram
 cat-cafe/
 ├── app/                 # アプリケーションのコアロジック (Models, Controllers, etc.)
 ├── bootstrap/           # フレームワークの起動スクリプト
+├── cat-cafe-spa/        # React SPA フロントエンド（SSO デモ用）
+│   ├── src/
+│   │   ├── pages/       # Login, Dashboard
+│   │   └── App.jsx
+│   └── package.json
 ├── config/              # 設定ファイル (SAML, Reverb設定など)
+│   └── saml2/           # SAML 2.0 設定
 ├── database/            # マイグレーション, シーダー, SQLiteファイル
+├── docs/                # ドキュメント
+│   ├── SSO_QUICKSTART.md          # SSO クイックスタート
+│   ├── SSO_SETUP_GUIDE.md         # SSO 詳細ガイド
+│   └── KEYCLOAK_SAML_SETUP.md     # Keycloak 設定
 ├── public/              # 公開ディレクトリ (画像, CSS, JS)
 ├── resources/           # ビュー(Blade), 生のCSS/JS
 ├── routes/              # ルーティング定義 (web.php, api.php)
+├── spa-backend/         # Node.js Express SAML バックエンド（SSO デモ用）
+│   ├── server.js
+│   ├── saml-config.js
+│   └── package.json
 ├── storage/             # ログ, キャッシュ, ファイルアップロード先
 ├── tests/               # テストコード
-└── vendor/              # Composer依存パッケージ
+├── vendor/              # Composer依存パッケージ
+└── compose.yaml         # Docker Compose 設定
 ```
 
 ## ライセンス

@@ -56,6 +56,29 @@
                                 ログイン
                             </button>
                         </form>
+
+                        <!-- Keycloak SAML Login -->
+                        <div class="mt-4">
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-gray-300"></div>
+                                </div>
+                                <div class="relative flex justify-center text-sm">
+                                    <span class="px-2 bg-white text-gray-500">または</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <a href="{{ route('saml2_login', 'keycloak') }}"
+                                class="block w-full p-3 text-center text-sm text-gray-700 font-semibold leading-none bg-white border-2 border-gray-300 hover:bg-gray-100 rounded"
+                                >
+                                <svg class="inline-block h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Keycloakでログイン（SSO）
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

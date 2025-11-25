@@ -23,7 +23,7 @@
         <!-- ▼▼▼▼共通ヘッダー(SP)▼▼▼▼　-->
         <nav class="lg:hidden p-6 bg-gray-800">
             <div class="flex items-center justify-between">
-                <a href="#" class="text-2xl text-white font-semibold">管理画面</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-2xl text-white font-semibold">管理画面</a>
                 <button class="navbar-burger flex items-center rounded focus:outline-none">
                     <svg class="text-white bg-indigo-500 hover:bg-indigo-600 block h-8 w-8 p-2 rounded"
                         viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor">

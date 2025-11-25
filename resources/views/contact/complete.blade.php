@@ -4,7 +4,7 @@
 @section('content')
     <section class="bg-gray-100 pt-4">
         <div class="container mx-auto">
-            <p class="px-4 pt-2"><a href="#" class="text-blue-600 hover:underline">ホーム</a>&gt;お問い合わせ</p>
+            <p class="px-4 pt-2"><a href="/" class="text-blue-600 hover:underline">ホーム</a>&gt;お問い合わせ</p>
             <h1 class="mt-2 text-3xl font-bold h-32 text-center p-8">お問い合わせが完了しました</h1>
         </div>
     </section>

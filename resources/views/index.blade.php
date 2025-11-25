@@ -10,7 +10,7 @@
                 当店自慢のフワッフワのねこに触れ合うことで「幸せホルモン」が補給しませんか？
             </p>
             <div class="absolute right-0 bottom-0 transform translate-y-20">
-                <a href="#"><img src="/images/index/video.jpg" alt="" class="shadow-lg"></a>
+                <a href="/"><img src="/images/index/video.jpg" alt="" class="shadow-lg"></a>
             </div>
         </div>
     </section>
