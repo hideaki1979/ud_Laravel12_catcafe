@@ -38,6 +38,16 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+    console.error('致命的なエラー: 環境変数 SESSION_SECRET が設定されていません。');
+    if (process.env.NODE_ENV === 'production') {
+        process.exit(1);
+    } else {
+        console.warn('開発用にデフォルトのセッションシークレットを使用します。これは本番環境では安全ではありません。');
+        process.env.SESSION_SECRET = 'dev-secret-for-cat-cafe';
+    }
+}
 // セッション設定
 app.use(session({
     secret: process.env.SESSION_SECRET!,

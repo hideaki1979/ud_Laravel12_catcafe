@@ -2,11 +2,11 @@
     "name": "spa-backend",
     "version": "1.0.0",
     "description": "Node.js Express SAML backend for React SPA SSO demonstration",
-    "main": "dist/server.js",
+    "main": "dist/server.ts",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/server.js",
-        "dev": "tsx watch src/server.js",
+        "start": "node dist/server.ts",
+        "dev": "tsx watch src/server.ts",
         "typecheck": "tsc --noEmit"
     },
     "keywords": [
