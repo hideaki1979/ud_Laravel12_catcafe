@@ -20,7 +20,6 @@ import type { Profile } from '@node-saml/passport-saml';
 import type { VerifyWithoutRequest } from '@node-saml/passport-saml';
 import { samlConfig } from './config/saml';
 import type { User, SamlProfile, SerializeUser } from './types/user';
-import { RequestWithUser } from '@node-saml/passport-saml/lib/types';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -38,19 +37,20 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
+let sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
     console.error('致命的なエラー: 環境変数 SESSION_SECRET が設定されていません。');
     if (process.env.NODE_ENV === 'production') {
         process.exit(1);
     } else {
         console.warn('開発用にデフォルトのセッションシークレットを使用します。これは本番環境では安全ではありません。');
-        process.env.SESSION_SECRET = 'dev-secret-for-cat-cafe';
+        sessionSecret = 'dev-secret-for-cat-cafe';
     }
 }
+
 // セッション設定
 app.use(session({
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -215,37 +215,26 @@ app.get('/saml/metadata', (_req: Request, res: Response) => {
 // IdP（Keycloak）に対してログアウトリクエストを送信し、全てのSPからログアウト
 // @node-saml/passport-saml v5.x では logout メソッドはコールバックベース
 app.get('/saml/logout', (req: Request, res: Response) => {
-    if (req.isAuthenticated()) {
-        // SAMLログアウトリクエストを生成してIdPに送信
-        // logout(req, callback) の形式で呼び出す
-        samlStrategy.logout(req as any, (err: Error | null, requestUrl?: string | null) => {
-            if (err) {
-                console.error('Local logout error:', err);
-                // エラーが発生してもローカルセッションはクリア
-                req.logout(() => {
-                    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-                });
-                return;
-            }
-            if (requestUrl) {
-                // ローカルセッションをクリアしてIdPのログアウトURLにリダイレクト
-                req.logout((logoutErr) => {
-                    if (logoutErr) {
-                        console.error('Local logout error:', logoutErr);
-                    }
-                    res.redirect(requestUrl);
-                });
-                return;
-            }
-            // requestUrlがない場合はローカルログアウトのみ
-            req.logout(() => {
-                res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-            });
-            return;
-        });
+    if (!req.isAuthenticated()) {
+        return res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
     }
+    // SAMLログアウトリクエストを生成してIdPに送信
+    // logout(req, callback) の形式で呼び出す
+    samlStrategy.logout(req as any, (err: Error | null, requestUrl?: string | null) => {
+        if (err) {
+            console.error('Local logout error:', err);
+        }
 
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+        const redirectUrl = requestUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        // ローカルセッションをクリアしてIdPのログアウトURLにリダイレクト
+        req.logout((logoutErr) => {
+            if (logoutErr) {
+                console.error('Local logout error:', logoutErr);
+            }
+            res.redirect(redirectUrl);
+        });
+    });
 });
 
 // SAML Single Logout Service (SLS) - IdP発行ログアウトの受信
