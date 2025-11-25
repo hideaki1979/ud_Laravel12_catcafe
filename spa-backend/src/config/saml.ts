@@ -32,9 +32,11 @@ export const samlConfig: SamlConfig = {
     signatureAlgorithm: 'sha256',
     wantAssertionsSigned: false,
 
-    // ログアウト設定
+    // Single Logout (SLO) 設定
+    // logoutUrl: IdPのログアウトエンドポイント
     logoutUrl: `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/saml`,
-    logoutCallbackUrl: `${SP_BASE_URL}/saml/logout`,
+    // logoutCallbackUrl: IdPからのログアウト応答を受け取るエンドポイント（SLS）
+    logoutCallbackUrl: `${SP_BASE_URL}/saml/sls`,
 
     // 属性マッピング
     disableRequestedAuthnContext: true,

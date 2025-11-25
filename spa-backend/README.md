@@ -99,10 +99,11 @@ npm start
 ### 認証関連
 
 -   `GET /saml/login` - SAML 認証開始
--   `POST /saml/acs` - SAML Assertion Consumer Service
+-   `POST /saml/acs` - SAML Assertion Consumer Service（認証後のコールバック）
 -   `GET /saml/metadata` - SAML メタデータ
--   `GET /saml/logout` - SAML ログアウト
--   `POST /api/auth/logout` - ローカルログアウト
+-   `GET /saml/logout` - **SAML Single Logout（SLO）** - IdP にログアウトリクエストを送信
+-   `POST /saml/sls` - **SAML Single Logout Service（SLS）** - IdP からのログアウト要求を受信
+-   `POST /api/auth/logout` - ローカルログアウト（セッションのみクリア）
 -   `GET /api/auth/check` - 認証状態確認
 
 ### ユーザー情報
@@ -157,7 +158,29 @@ interface SamlProfile {
 -   `entryPoint`: Keycloak の認証エンドポイント
 -   `callbackUrl`: SAML 認証後のコールバック URL（ACS）
 -   `issuer`: SP 識別子
--   `cert`: IdP 証明書（オプション、学習用では不要）
+-   `cert`: IdP 証明書（型定義上必須、wantAssertionsSigned: false では未使用）
+-   `logoutUrl`: IdP のログアウトエンドポイント（SLO 用）
+-   `logoutCallbackUrl`: IdP からのログアウト応答を受け取るエンドポイント（SLS 用）
+
+## Single Logout（SLO）について
+
+このアプリケーションは**完全な SAML Single Logout**を実装しています。
+
+### SP 発行ログアウト（`GET /saml/logout`）
+
+1. ユーザーがこのアプリでログアウトボタンをクリック
+2. バックエンドが IdP（Keycloak）にログアウトリクエストを送信
+3. IdP が他の全ての SP（例：Laravel App）にログアウト通知を送信
+4. 全てのアプリケーションからログアウト完了
+
+### IdP 発行ログアウト（`POST /saml/sls`）
+
+1. 他の SP（例：Laravel App）でログアウト
+2. IdP が全ての SP にログアウト通知を送信
+3. このバックエンドが SLS エンドポイントで通知を受信
+4. セッションをクリアしてログアウト完了
+
+これにより、**どのアプリでログアウトしても全てのアプリからログアウトされる**という、真の SSO が実現されます。
 
 ## セキュリティ設定
 

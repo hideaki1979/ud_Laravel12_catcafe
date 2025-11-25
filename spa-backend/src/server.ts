@@ -11,9 +11,10 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import passport from 'passport';
-import { Strategy as SamlStrategy, Profile, VerifyWithoutRequest } from 'passport-saml';
+import { Strategy as SamlStrategy, VerifyWithoutRequest } from 'passport-saml';
+import type { RequestWithUser } from 'passport-saml/lib/passport-saml/types';
 import { samlConfig } from './config/saml';
-import type { User, SamlProfile } from './types/user';
+import type { User, SamlProfile, SerializeUser } from './types/user';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,7 +34,7 @@ app.use(cors({
 
 // セッション設定
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'cat-cafe-sso-secret-key',
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -59,29 +60,51 @@ const verifyCallback: VerifyWithoutRequest = (profile, done) => {
 
     const samlProfile = profile as unknown as SamlProfile;
 
+    if (!samlProfile.nameID) {
+        return done(new Error('SAML nameID not found in profile.'));
+    }
     // ユーザー情報を抽出
     const user: User = {
         id: samlProfile.id || samlProfile.nameID || 'unknown',
-        email: samlProfile.email || samlProfile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] as string || 'unknown@example.com',
-        name: samlProfile.name || samlProfile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] as string || 'Unknown User',
+        email: samlProfile.email || samlProfile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || 'unknown@example.com',
+        name: samlProfile.name || samlProfile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || 'Unknown User',
         samlId: samlProfile.nameID || 'unknown',
-        attributes: samlProfile
+        attributes: {
+            issuer: samlProfile.issuer,
+            sessionIndex: samlProfile.sessionIndex,
+            nameID: samlProfile.nameID,
+            nameIDFormat: samlProfile.nameIDFormat
+        }
     };
 
-    console.log('User authenticated:', user);
-    return done(null, user);
+    console.log('User authenticated!', user.name);
+    // passport-saml の done コールバックは Record<string, unknown> を期待するため
+    // User を object として渡す
+    return done(null, user as unknown as Record<string, unknown>);
 };
 
 const samlStrategy = new SamlStrategy(samlConfig, verifyCallback);
 
-passport.use(samlStrategy as any);
+passport.use(samlStrategy as passport.Strategy);
 
 // セッションのシリアライズ/デシリアライズ
-passport.serializeUser<User>((user, done) => {
-    done(null, user)
+passport.serializeUser((user, done) => {
+    const serialized: SerializeUser = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        samlId: user.samlId
+    }
+    done(null, serialized);
 });
 
-passport.deserializeUser<User>((user, done) => {
+passport.deserializeUser((serialized: SerializeUser, done) => {
+    // セッションから復元したユーザー情報
+    // 必要に応じてDBからフル情報を取得することも可能
+    const user: User = {
+        ...serialized,
+        attributes: {}  // セッションからの復元時は属性は空
+    }
     done(null, user);
 });
 
@@ -136,26 +159,55 @@ app.get('/saml/metadata', (_req: Request, res: Response) => {
     res.send(metadata);
 });
 
-// ログアウト
+// SAML Single Logout (SLO) - SP発行
+// IdP（Keycloak）に対してログアウトリクエストを送信し、全てのSPからログアウト
 app.get('/saml/logout', (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
-        // セッションをクリアしてリダイレクト
-        // SAMLログアウトは複雑なため、シンプルにローカルログアウトのみ実装
-        req.logout((err) => {
+        // SAMLログアウトリクエストを生成してIdPに送信
+        // 型エラー回避のため、reqを any としてキャスト
+        samlStrategy.logout(req as unknown as RequestWithUser, (err: Error | null, requestUrl?: string | null) => {
             if (err) {
-                return res.status(500).json({ error: 'Logout failed' });
+                console.error('SAML logout error:', err);
+                // エラーが発生してもローカルセッションはクリア
+                req.logout(() => {
+                    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+                });
             }
-            res.json({ success: true, message: 'Logged out successfully' });
+
+            if (requestUrl) {
+                // IdPのログアウトURLにリダイレクト
+                req.logout(() => {
+                    res.redirect(requestUrl);
+                });
+            }
+            // requestUrlがない場合はフロントエンドにリダイレクト
+            req.logout(() => {
+                res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+            });
+
         });
     }
     res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
 });
 
+// SAML Single Logout Service (SLS) - IdP発行ログアウトの受信
+// IdPから送られてくるログアウトリクエストを処理
+app.post('/saml/sls',
+    passport.authenticate('saml', { failureRedirect: '/', failureFlash: true }),
+    (req: Request, res: Response) => {
+        console.log('SAML SLS: Logout request from IdP');
+        req.logout(() => {
+            res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+        });
+    }
+);
+
 // ローカルログアウト（セッションのみクリア）
 app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.logout((err) => {
         if (err) {
-            return res.status(500).json({ error: 'Logout failed' });
+            res.status(500).json({ error: 'Logout failed' });
+            return;
         }
         res.json({ success: true, message: 'Logged out successfully' });
     });
@@ -164,7 +216,8 @@ app.post('/api/auth/logout', (req: Request, res: Response) => {
 // ユーザー情報取得API
 app.get('/api/user', (req: Request, res: Response) => {
     if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: 'Not authenticated' });
+        res.status(401).json({ error: 'Not authenticated' });
+        return;
     }
     res.json({ user: req.user });
 });
@@ -172,7 +225,8 @@ app.get('/api/user', (req: Request, res: Response) => {
 // 保護されたAPIエンドポイントの例
 app.get('/api/protected', (req: Request, res: Response) => {
     if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({ error: 'Authentication required' });
+        return;
     }
     res.json({
         message: 'This is a protected resource',
