@@ -9,7 +9,7 @@ Keycloak との SAML 2.0 認証を処理し、セッション管理とユーザ�
 -   **Node.js**: JavaScript/TypeScript ランタイム
 -   **Express**: Web フレームワーク
 -   **TypeScript**: 型安全な開発
--   **passport-saml**: SAML 2.0 認証
+-   **@node-saml/passport-saml v5.x**: SAML 2.0 認証（セキュリティ対応済み）
 -   **express-session**: セッション管理
 -   **tsx**: TypeScript 実行環境（開発用）
 
@@ -153,12 +153,29 @@ interface SamlProfile {
 
 `src/config/saml.ts`で SAML 設定を管理しています。
 
+### @node-saml/passport-saml v5.x への移行
+
+2024 年以降、`passport-saml`パッケージは非推奨（deprecated）となり、`@node-saml/passport-saml`への移行が推奨されています。
+
+**移行理由：**
+
+-   セキュリティ脆弱性（CVE-2022-39299）の修正
+-   継続的なメンテナンス
+-   型定義の内蔵（`@types/passport-saml`不要）
+
+**主な変更点：**
+
+-   パッケージ名: `passport-saml` → `@node-saml/passport-saml`
+-   設定キー: `cert` → `idpCert`
+-   Strategy コンストラクタ: 3 引数（options, signonVerify, logoutVerify）
+-   型: `SamlConfig` は `@node-saml/node-saml` からインポート
+
 主な設定項目：
 
 -   `entryPoint`: Keycloak の認証エンドポイント
 -   `callbackUrl`: SAML 認証後のコールバック URL（ACS）
 -   `issuer`: SP 識別子
--   `cert`: IdP 証明書（型定義上必須、wantAssertionsSigned: false では未使用）
+-   `idpCert`: IdP 証明書（v5.x で `cert` から変更、型定義上必須）
 -   `logoutUrl`: IdP のログアウトエンドポイント（SLO 用）
 -   `logoutCallbackUrl`: IdP からのログアウト応答を受け取るエンドポイント（SLS 用）
 
@@ -234,5 +251,6 @@ spa-backend:
 
 -   [TypeScript 公式ドキュメント](https://www.typescriptlang.org/)
 -   [Express 公式ドキュメント](https://expressjs.com/)
--   [passport-saml](https://github.com/node-saml/passport-saml)
+-   [@node-saml/passport-saml 公式 GitHub](https://github.com/node-saml/passport-saml)
+-   [passport-saml 公式ドキュメント](https://www.passportjs.org/packages/passport-saml/)
 -   [tsx](https://github.com/esbuild-kit/tsx)

@@ -3,6 +3,10 @@
  *
  * React SPA用のバックエンドAPI
  * Keycloakとの SAML 2.0 認証を処理
+ *
+ * @node-saml/passport-saml v5.x 対応
+ * 公式GitHub: https://github.com/node-saml/passport-saml
+ * 公式ドキュメント: https://www.passportjs.org/packages/passport-saml/
  */
 
 import express, { Request, Response, NextFunction } from 'express';
@@ -11,10 +15,12 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import passport from 'passport';
-import { Strategy as SamlStrategy, VerifyWithoutRequest } from 'passport-saml';
-import type { RequestWithUser } from 'passport-saml/lib/passport-saml/types';
+import { Strategy as SamlStrategy } from '@node-saml/passport-saml';
+import type { Profile } from '@node-saml/passport-saml';
+import type { VerifyWithoutRequest } from '@node-saml/passport-saml';
 import { samlConfig } from './config/saml';
 import type { User, SamlProfile, SerializeUser } from './types/user';
+import { RequestWithUser } from '@node-saml/passport-saml/lib/types';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,14 +57,16 @@ app.use(passport.session());
 // Passport SAML Strategy設定
 // メタデータ生成のため、Strategyインスタンスを保持
 // 公式ドキュメント: https://www.passportjs.org/packages/passport-saml/
-const verifyCallback: VerifyWithoutRequest = (profile, done) => {
-    console.log('SAML Profile:', JSON.stringify(profile, null, 2));
 
+// サインオン時の検証コールバック
+const signonVerifyCallback: VerifyWithoutRequest = (profile: Profile | null, done) => {
     if (!profile) {
         return done(new Error('No profile received from SAML'));
     }
 
-    const samlProfile = profile as unknown as SamlProfile;
+    // @node-saml/passport-saml v5.x では Profile 型を使用
+    // Profile 型には nameID, issuer, sessionIndex などが含まれる
+    const samlProfile = profile as SamlProfile;
 
     if (!samlProfile.nameID) {
         return done(new Error('SAML nameID not found in profile.'));
@@ -77,15 +85,45 @@ const verifyCallback: VerifyWithoutRequest = (profile, done) => {
         }
     };
 
-    console.log('User authenticated!', user.name);
-    // passport-saml の done コールバックは Record<string, unknown> を期待するため
-    // User を object として渡す
+    if (process.env.NODE_ENV === 'development') {
+        console.log('User authenticated!', user);
+    }
+    // @node-saml/passport-saml の done コールバックは Record<string, unknown> を期待
     return done(null, user as unknown as Record<string, unknown>);
 };
 
-const samlStrategy = new SamlStrategy(samlConfig, verifyCallback);
+// ログアウト時の検証コールバック
+// @node-saml/passport-saml v5.x では signonVerify と logoutVerify の両方が必要
+const logoutVerifyCallback: VerifyWithoutRequest = (profile: Profile | null, done) => {
+    if (!profile) {
+        return done(new Error('No profile received for logout'));
+    }
 
-passport.use(samlStrategy as passport.Strategy);
+    if (process.env.NODE_ENV === 'development') {
+        console.log('Logout profile received:', profile.nameID);
+    }
+
+    // ログアウト時はユーザー情報を返す（セッションからユーザーを特定するため）
+    const user = {
+        nameID: profile.nameID,
+        nameIDFormat: profile.nameIDFormat,
+        sessionIndex: profile.sessionIndex
+    };
+
+    return done(null, user);
+}
+
+// @node-saml/passport-saml v5.x では 3つの引数が必要:
+// 1. options (SamlConfig)
+// 2. signonVerify (認証時のコールバック)
+// 3. logoutVerify (ログアウト時のコールバック)
+const samlStrategy = new SamlStrategy(
+    samlConfig, signonVerifyCallback, logoutVerifyCallback
+);
+
+// 型の互換性問題を回避するためのキャスト
+// @types/passport と @node-saml/passport-saml の @types/express バージョン差異による
+passport.use(samlStrategy as unknown as passport.Strategy);
 
 // セッションのシリアライズ/デシリアライズ
 passport.serializeUser((user, done) => {
@@ -137,14 +175,16 @@ app.get('/api/auth/check', (req: Request, res: Response) => {
 
 // SAML認証開始
 app.get('/saml/login',
-    passport.authenticate('saml', { failureRedirect: '/', failureFlash: true })
+    passport.authenticate('saml', { failureRedirect: '/' })
 );
 
 // SAML Assertion Consumer Service (ACS) - 認証後のコールバック
 app.post('/saml/acs',
     passport.authenticate('saml', { failureRedirect: '/' }),
     (req: Request, res: Response) => {
-        console.log('SAML ACS Success:', req.user);
+        if (process.env.NODE_ENV === 'development') {
+            console.log('SAML ACS Success:', (req.user as User)?.id);
+        }
         // フロントエンドにリダイレクト
         res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
     }
@@ -152,48 +192,56 @@ app.post('/saml/acs',
 
 // SAMLメタデータ
 // 公式ドキュメント: https://www.passportjs.org/packages/passport-saml/
+// 公式GitHub: https://github.com/node-saml/passport-saml
 app.get('/saml/metadata', (_req: Request, res: Response) => {
     res.type('application/xml');
-    // decryptionCert と signingCert は省略可能（学習用では不要）
+    // @node-saml/passport-saml v5.x では第1引数 decryptionCert が必須（null可）
+    // 第2引数 signingCert は省略可能
     const metadata = samlStrategy.generateServiceProviderMetadata(null);
     res.send(metadata);
 });
 
 // SAML Single Logout (SLO) - SP発行
 // IdP（Keycloak）に対してログアウトリクエストを送信し、全てのSPからログアウト
+// @node-saml/passport-saml v5.x では logout メソッドはコールバックベース
 app.get('/saml/logout', (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
         // SAMLログアウトリクエストを生成してIdPに送信
-        // 型エラー回避のため、reqを any としてキャスト
-        samlStrategy.logout(req as unknown as RequestWithUser, (err: Error | null, requestUrl?: string | null) => {
+        // logout(req, callback) の形式で呼び出す
+        samlStrategy.logout(req as any, (err: Error | null, requestUrl?: string | null) => {
             if (err) {
-                console.error('SAML logout error:', err);
+                console.error('Local logout error:', err);
                 // エラーが発生してもローカルセッションはクリア
                 req.logout(() => {
                     res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
                 });
+                return;
             }
-
             if (requestUrl) {
-                // IdPのログアウトURLにリダイレクト
-                req.logout(() => {
+                // ローカルセッションをクリアしてIdPのログアウトURLにリダイレクト
+                req.logout((logoutErr) => {
+                    if (logoutErr) {
+                        console.error('Local logout error:', logoutErr);
+                    }
                     res.redirect(requestUrl);
                 });
+                return;
             }
-            // requestUrlがない場合はフロントエンドにリダイレクト
+            // requestUrlがない場合はローカルログアウトのみ
             req.logout(() => {
                 res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
             });
-
+            return;
         });
     }
+
     res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
 });
 
 // SAML Single Logout Service (SLS) - IdP発行ログアウトの受信
 // IdPから送られてくるログアウトリクエストを処理
 app.post('/saml/sls',
-    passport.authenticate('saml', { failureRedirect: '/', failureFlash: true }),
+    passport.authenticate('saml', { failureRedirect: '/' }),
     (req: Request, res: Response) => {
         console.log('SAML SLS: Logout request from IdP');
         req.logout(() => {

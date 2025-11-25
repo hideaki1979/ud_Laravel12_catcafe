@@ -2,9 +2,13 @@
  * SAML 2.0 設定ファイル（Keycloak IdP用）
  *
  * この設定はKeycloakをIdPとして使用するためのSAML設定です。
+ *
+ * @node-saml/passport-saml v5.x 対応
+ * 公式GitHub: https://github.com/node-saml/passport-saml
+ * 公式ドキュメント: https://www.passportjs.org/packages/passport-saml/
  */
 
-import type { SamlConfig } from "passport-saml";
+import type { SamlConfig } from "@node-saml/passport-saml";
 
 const KEYCLOAK_BASE_URL = process.env.SAML2_KEYCLOAK_BASE_URL || 'http://keycloak:8080';
 const KEYCLOAK_REALM = process.env.SAML2_KEYCLOAK_REALM || 'lanekocafe';
@@ -17,12 +21,13 @@ export const samlConfig: SamlConfig = {
     issuer: `${SP_BASE_URL}/saml/metadata`,
 
     // IdP（Keycloak）の証明書
+    // @node-saml/passport-saml v5.x では "cert" から "idpCert" に変更
     // Keycloak管理画面から取得した証明書を設定してください
     // Realm Settings > Keys > RS256 の Certificate
     // 公式ドキュメント: https://www.passportjs.org/packages/passport-saml/
-    // cert は型定義上必須ですが、wantAssertionsSigned: false の場合は署名検証を行わないため、
+    // idpCert は型定義上必須ですが、wantAssertionsSigned: false の場合は署名検証を行わないため、
     // 環境変数がない場合はダミー値を設定（実際には使用されません）
-    cert: process.env.SAML2_KEYCLOAK_IDP_x509 || 'dummy-cert',
+    idpCert: process.env.SAML2_KEYCLOAK_IDP_x509 || 'dummy-cert',
 
     // SAML設定
     identifierFormat: 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
