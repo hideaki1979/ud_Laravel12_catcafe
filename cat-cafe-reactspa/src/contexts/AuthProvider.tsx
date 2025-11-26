@@ -35,12 +35,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const login = () => {
         // SAML認証開始（Express Backendにリダイレクト）
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/saml/login`;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+        window.location.href = `${baseUrl}/saml/login`;
     }
 
-    const logout = () => {
+    const logout = async () => {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+        try {
+            await authApi.logout();
+        } catch (error) {
+            console.error('バックエンドログアウトに失敗:', error);
+            // エラーが発生してもSAMLログアウトは続行zs
+        }
         // SAMLログアウト（Express Backendにリダイレクト）
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/saml/logout`;
+        window.location.href = `${baseUrl}/saml/logout`;
     }
 
     const value: AuthContextType = {

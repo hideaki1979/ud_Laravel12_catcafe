@@ -41,9 +41,9 @@ export default function Dashboard() {
                     </ul>
                     <div>
                         <a
-                        href="http://localhost/admin/dashboard"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                            href={import.meta.env.VITE_LARAVEL_APP_URL || "http://localhost/admin/dashboard"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Laravel Appを開く（SSO確認）
                         </a>

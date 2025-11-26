@@ -32,10 +32,12 @@ export default function Login() {
                 Keycloakでログイン
             </button>
 
-            <div>
-                <p>テストユーザー：</p>
-                <p>testuser / test1234</p>
-            </div>
+            {import.meta.env.DEV && (
+                <div>
+                    <p>テストユーザー：</p>
+                    <p>testuser / test1234</p>
+                </div>
+            )}
         </div>
     )
 }
