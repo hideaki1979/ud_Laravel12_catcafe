@@ -42,15 +42,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         window.location.href = `${baseUrl}/saml/login`;
     }, [baseUrl]);
 
-    // ログアウト（useCallbackでメモ化）
+    // SAML SLOを使用するため、直接/saml/logoutにリダイレクト
+    // authApi.logout()を先に呼ぶとセッションがクリアされ、SLOが機能しなくなる
     const logout = useCallback(async () => {
-        try {
-            await authApi.logout();
-        } catch (error) {
-            console.error('バックエンドログアウトに失敗:', error);
-            // エラーが発生してもSAMLログアウトは続行
-        }
         // SAMLログアウト（Express Backendにリダイレクト）
+         // セッション情報を保持したままIdPにログアウトリクエストを送信
         window.location.href = `${baseUrl}/saml/logout`;
     }, [baseUrl]);
 

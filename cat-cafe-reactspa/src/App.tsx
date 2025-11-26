@@ -1,7 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts";
 import Login from "./pages/Login";
-import Callback from "./pages/Callback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -12,7 +11,6 @@ function App() {
             <AuthProvider>
                 <Routes>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/callback" element={<Callback />} />
                     <Route path="/dashboard"
                         element={
                             <ProtectedRoute>

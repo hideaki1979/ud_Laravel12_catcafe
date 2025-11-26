@@ -237,17 +237,27 @@ app.get('/saml/logout', (req: Request, res: Response) => {
     });
 });
 
-// SAML Single Logout Service (SLS) - IdP発行ログアウトの受信
-// IdPから送られてくるログアウトリクエストを処理
-app.post('/saml/sls',
-    passport.authenticate('saml', { failureRedirect: '/' }),
-    (req: Request, res: Response) => {
-        console.log('SAML SLS: Logout request from IdP');
-        req.logout(() => {
-            res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-        });
-    }
-);
+// Front channel logoutの場合、KeycloakはGETでリダイレクトしてくる
+app.get('/saml/sls', (req: Request, res: Response) => {
+    // ローカルセッションをクリア
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error:', err);
+        }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    });
+});
+
+// POST版のSLS（Back channel logoutの場合）
+app.post('/saml/sls', (req: Request, res: Response) => {
+    // ローカルセッションをクリア
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error:', err);
+        }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    });
+});
 
 // ローカルログアウト（セッションのみクリア）
 app.post('/api/auth/logout', (req: Request, res: Response) => {
