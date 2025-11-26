@@ -15,11 +15,10 @@ echo ""
 
 # Docker Composeでサービスを起動
 echo "📦 Docker Composeでサービスを起動中..."
-docker compose up -d
+docker compose up -d --wait
 
 echo ""
 echo "⏳ サービスの起動を待機中..."
-sleep 5
 
 echo ""
 echo "=========================================="

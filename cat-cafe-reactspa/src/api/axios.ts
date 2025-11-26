@@ -29,6 +29,8 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401) {
             // 未認証エラーの場合
             console.error('認証エラー: ログインが必要です');
+            // ログインページにリダイレクトして再認証を促す
+            window.location.href = "/login";
         }
         return Promise.reject(error);
     }

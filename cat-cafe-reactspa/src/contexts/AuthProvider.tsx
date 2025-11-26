@@ -35,12 +35,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const login = () => {
         // SAML認証開始（Express Backendにリダイレクト）
-        window.location.href = 'http://localhost:3001/saml/login';
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/saml/login`;
     }
 
     const logout = () => {
         // SAMLログアウト（Express Backendにリダイレクト）
-        window.location.href = 'http://localhost:3001/saml/logout';
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/saml/logout`;
     }
 
     const value: AuthContextType = {

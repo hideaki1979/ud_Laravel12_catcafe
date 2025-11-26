@@ -19,13 +19,3 @@ export const authApi = {
         await axios.post('/api/auth/logout');
     },
 };
-
-// SAML認証開始（リダイレクト）
-export const startSamlLogin = () => {
-    window.location.href = 'http://localhost:3001/saml/login';
-}
-
-// SAMLログアウト（リダイレクト）
-export const startSamlLogout = () => {
-    window.location.href = 'http://localhost:3001/saml/logout';
-}
