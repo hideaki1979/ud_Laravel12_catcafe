@@ -10,8 +10,8 @@ export const authApi = {
 
     // ユーザー情報取得
     getUser: async (): Promise<User> => {
-        const response = await axios.get<User>('/api/user');
-        return response.data;
+        const response = await axios.get<{ user: User }>('/api/user');
+        return response.data.user;
     },
 
     // ログアウト(ローカル)
