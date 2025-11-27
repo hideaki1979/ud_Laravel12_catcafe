@@ -58,9 +58,10 @@ export const samlConfig: SamlConfig = {
 
     // セキュリティ設定（学習用のため簡略化）
     // 公式ドキュメント推奨: 'sha256' または 'sha512'（'sha1'は非推奨）
+    // https://www.passportjs.org/packages/passport-saml/
     signatureAlgorithm: 'sha256',
-    wantAssertionsSigned: false,
-    wantAuthnResponseSigned: false,  // SAML Response全体の署名検証をスキップ
+    wantAssertionsSigned: true,
+    wantAuthnResponseSigned: true,  // SAML Response全体の署名検証をスキップ
 
     // Single Logout (SLO) 設定
     // logoutUrl: IdPのログアウトエンドポイント

@@ -36,8 +36,8 @@ export default function Login() {
 
                 {import.meta.env.DEV && (
                     <div className="mt-6 text-gray-500 text-sm text-center">
-                        <p>テストユーザー：</p>
-                        <p>testuser / password</p>
+                        <p>テストユーザー：testuser</p>
+                        <p>（パスワードは別途確認してください）</p>
                     </div>
                 )}
             </div>

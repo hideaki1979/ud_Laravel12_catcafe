@@ -16,9 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn() => route('admin.login'));
         $middleware->redirectUsersTo(fn() => route('admin.dashboard'));
 
-        // SAML ACSエンドポイントをCSRF保護から除外
+        // SAML ACS/SLSエンドポイントをCSRF保護から除外
+        // ACS: Assertion Consumer Service（認証レスポンス受信）
+        // SLS: Single Logout Service（ログアウトリクエスト受信）
         $middleware->validateCsrfTokens(except: [
             'saml2/keycloak/acs',
+            'saml2/keycloak/sls',  // POST版SLSのCSRF除外
         ]);
 
         // 本番環境: ロードバランサー/リバースプロキシの信頼設定

@@ -213,6 +213,21 @@ Keycloak では、**レルム（Realm）** がユーザーとアプリケーシ�
 | **Canonicalization method**   | EXCLUSIVE  | 正規化メソッド             |
 | **Name ID format**            | persistent | NameID フォーマット        |
 
+#### ログアウト設定（Single Logout / SLO）
+
+> ⚠️ **重要**: マルチSP環境でSLOを正しく動作させるには、以下の設定が必須です。
+
+| 項目                                     | 値                                      | 説明                                                  |
+| ---------------------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| **Front channel logout**                 | OFF                                     | Back-Channel Logoutを使用（推奨）                     |
+| **Logout Service POST Binding URL**      | `http://localhost/saml2/keycloak/sls`   | Back-Channel LogoutでKeycloakがPOSTリクエストを送信するURL |
+| **Logout Service Redirect Binding URL**  | `http://localhost/saml2/keycloak/sls`   | リダイレクト方式でのログアウトURL                      |
+
+> 📝 **Back-Channel Logout vs Front-Channel Logout**
+>
+> - **Back-Channel Logout（推奨）**: KeycloakがサーバーサイドでHTTP POSTリクエストを各SPに送信。ブラウザを経由しないため信頼性が高い。
+> - **Front-Channel Logout**: Keycloakがブラウザ経由（iframe/リダイレクト）で各SPにログアウトリクエストを送信。ブラウザの制限やCORS問題が発生しやすい。
+
 **Save** をクリック
 
 ### 4.4 Client Scope の削除（重要）
@@ -777,6 +792,67 @@ protected $fillable = [
     'introduction',
     'saml_id',  // ← 追加
 ];
+```
+
+### 問題 12: マルチSP環境でSLO（Single Logout）が他のSPに伝播しない
+
+**症状**:
+
+-   SPA側でログアウト → SPAのセッションは終了、Keycloakセッションも終了
+-   しかし、Laravel側はリロードしてもダッシュボードが表示される（セッションが残っている）
+
+**原因1**: KeycloakのLogout Service URLが設定されていない
+
+**解決策**:
+
+Keycloak管理画面で各SAMLクライアントに**Logout Service URL**を設定してください：
+
+1. **Clients** → 対象のクライアント（例: `http://localhost/saml2/keycloak/metadata`）を開く
+2. **Settings** タブで以下を設定：
+   - **Front channel logout**: OFF
+   - **Logout Service POST Binding URL**: `http://localhost/saml2/keycloak/sls`
+   - **Logout Service Redirect Binding URL**: `http://localhost/saml2/keycloak/sls`
+3. **Save** をクリック
+
+> ⚠️ **重要**: すべてのSAMLクライアント（Laravel用、SPA Backend用など）に同様の設定が必要です。
+
+**原因2**: Laravel側でSaml2LogoutEventリスナーが未実装
+
+**解決策**:
+
+`app/Providers/AppServiceProvider.php` にイベントリスナーを追加してください：
+
+```php
+use Aacotroneo\Saml2\Events\Saml2LogoutEvent;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Session;
+
+public function boot(): void
+{
+    // ... 既存のコード ...
+
+    // SAML SLO イベントリスナー
+    Event::listen(Saml2LogoutEvent::class, function (Saml2LogoutEvent $event) {
+        Auth::logout();
+        Session::save();
+    });
+}
+```
+
+> 📝 **参考**: [aacotroneo/laravel-saml2 公式GitHub](https://github.com/aacotroneo/laravel-saml2)
+
+**原因3**: CSRF保護によりSLSエンドポイントがブロックされている
+
+**解決策**:
+
+`bootstrap/app.php` でSLSエンドポイントをCSRF保護から除外してください：
+
+```php
+$middleware->validateCsrfTokens(except: [
+    'saml2/keycloak/acs',
+    'saml2/keycloak/sls',  // ← SLSも除外
+]);
 ```
 
 ---

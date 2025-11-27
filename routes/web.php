@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AdminDashboardController;
+use App\Http\Controllers\Auth\SamlAuthController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,16 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'index');
+
+// SAML SLS (Single Logout Service) - POST版を追加
+// パッケージのデフォルトルートはGETのみだが、KeycloakはPOSTでLogoutRequestを送信する場合がある
+// 参考: https://www.keycloak.org/docs/latest/server_admin/index.html
+Route::middleware(config('saml2_settings.routesMiddleware'))
+    ->prefix(config('saml2_settings.routesPrefix'))
+    ->group(function () {
+        Route::post('/{idpName}/sls', [SamlAuthController::class, 'sls'])
+            ->name('saml2_sls_post');
+    });
 
 // （一般向け）ブログ関連
 Route::get('/blogs', [BlogController::class, 'index'])->name('blogs.index');

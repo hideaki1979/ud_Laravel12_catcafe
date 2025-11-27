@@ -237,29 +237,47 @@ app.get('/saml/logout', (req: Request, res: Response) => {
     });
 });
 
+// SAML Single Logout Service (SLS) - IdPからのログアウトリクエストを処理
+// 注意: passport.authenticate('saml')による署名検証は使用していません。
+// 理由: passport-samlはSAMLResponseの検証用であり、LogoutResponseの検証では
+// "Invalid signature: No response found" エラーが発生するため。
+// セキュリティリスク（ログアウトのみ、データ漏洩なし）と動作の安定性を考慮し、
+// 署名検証をスキップしています。
+const slsHandler = (_req: Request, res: Response) => {
+    // passport.authenticate('saml')がセッションクリアを行うため、
+    // ここではリダイレクトのみ行う
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+}
+
+// SLS認証失敗時のハンドラー
+const slsFailureHandler = (req: Request, res: Response) => {
+    console.error('SAML SLS: 署名検証失敗');
+    // 署名検証に失敗しても、ローカルセッションはクリアしてリダイレクト
+    // （セキュリティ上、不正なリクエストでもログアウトは許可）
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error after validation failure:', err);
+        }
+    });
+}
+
 // Front channel logoutの場合、KeycloakはGETでリダイレクトしてくる
-app.get('/saml/sls', (req: Request, res: Response) => {
-    // ローカルセッションをクリア
-    req.logout((err) => {
-        if (err) {
-            console.error('SLS logout error:', err);
-        }
-        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-    });
-});
-
+app.get('/saml/sls',
+    passport.authenticate('saml', { failureRedirect: '/saml/sls/failure' }),
+    slsHandler
+);
 // POST版のSLS（Back channel logoutの場合）
-app.post('/saml/sls', (req: Request, res: Response) => {
-    // ローカルセッションをクリア
-    req.logout((err) => {
-        if (err) {
-            console.error('SLS logout error:', err);
-        }
-        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-    });
-});
+app.post('/saml/sls',
+    passport.authenticate('saml', { failureRedirect: '/saml/sls/failure' }),
+    slsHandler
+);
 
-// ローカルログアウト（セッションのみクリア）
+// SLS検証失敗時のフォールバック
+app.get('/saml/sls/failure', slsFailureHandler);
+app.post('/saml/sls/failure', slsFailureHandler);
+
+// ローカルログアウト（セッションのみクリア、SLOを使用しない場合）
+// フロントエンドのauthApi.logout()から呼び出される
 app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.logout((err) => {
         if (err) {

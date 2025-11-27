@@ -137,30 +137,57 @@ class SamlAuthController extends Controller
 
     /**
      * SAML Single Logout Service (SLS) - IdP からのログアウトリクエストを処理
+     *
+     * 重要: aacotroneo/laravel-saml2 パッケージ（OneLogin PHP SAML）は
+     * HTTP_REDIRECT Binding（$_GET）のみをネイティブサポートしています。
+     * しかし、KeycloakはFront channel logout = ON でも HTTP_POST Binding で
+     * SAMLRequestを送信する場合があります。
+     *
+     * このメソッドでは、POSTリクエストのBodyからSAMLRequest/SAMLResponseを取得し、
+     * $_GETに設定することで、OneLoginライブラリが正しく処理できるようにしています。
+     *
+     *
+     * 参考: https://github.com/aacotroneo/laravel-saml2
+     *
+     * @param Saml2Auth $saml2Auth
+     * @param string $idpName IdP名（ルートパラメータから自動注入）
      */
-    public function sls(Saml2Auth $saml2Auth): RedirectResponse
+    public function sls(Saml2Auth $saml2Auth, string $idpName = 'keycloak')
     {
-        try {
-            $retrieveParametersFromServer = config('saml2_settings.retrieveParametersFromServer');
-            $errors = $saml2Auth->sls($retrieveParametersFromServer);
-
-            if (!empty($errors)) {
-                Log::error('SAML SLS エラー', ['errors' => $errors]);
+        // OneLogin PHP SAMLライブラリは $_GET からSAMLRequest/SAMLResponseを取得する
+        // KeycloakがPOSTでリクエストを送信する場合、$_GETに値を設定する必要がある
+        if (request()->isMethod('POST')) {
+            // POSTリクエストの場合、BodyからSAMLパラメータを取得して$_GETに設定
+            if (request()->has('SAMLRequest') && !isset($_GET['SAMLRequest'])) {
+                $_GET['SAMLRequest'] = request()->input('SAMLRequest');
             }
 
-            // ローカルセッションからログアウト
-            Auth::logout();
+            if (request()->has('SAMLResponse') && !isset($_GET['SAMLResponse'])) {
+                $_GET['SAMLResponse'] = request()->input('SAMLResponse');
+            }
 
-            return redirect()->route('admin.login')
-                ->with('success', 'ログアウトしました。');
-        } catch (\Exception $e) {
-            Log::error('SAML SLS 例外', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return redirect()->route('admin.login');
+            if (request()->has('RelayState') && !isset($_GET['RelayState'])) {
+                $_GET['RelayState'] = request()->input('RelayState');
+            }
         }
+
+        $retrieveParametersFromServer = config('saml2_settings.retrieveParametersFromServer');
+        // パッケージの sls() メソッドを呼び出し
+        // 内部で Saml2LogoutEvent が発火され、AppServiceProvider のリスナーで
+        // Auth::logout() と Session::save() が実行される
+        $errors = $saml2Auth->sls($idpName, $retrieveParametersFromServer);
+
+        if (!empty($errors)) {
+            Log::error('SAML SLS エラー', ['errors' => $errors]);
+            // エラーがあっても、セッションはクリアしてリダイレクト
+            // （ログアウトフローを妨げない）
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
+
+        // ログアウト後のリダイレクト先
+        return redirect(config('saml2_settings.logoutRoute'));
     }
 
     /**
