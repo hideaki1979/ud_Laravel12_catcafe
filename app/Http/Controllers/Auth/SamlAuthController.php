@@ -183,9 +183,7 @@ class SamlAuthController extends Controller
                 Log::error('SAML SLS エラー', ['errors' => $errors]);
                 // エラーがあっても、セッションはクリアしてリダイレクト
                 // （ログアウトフローを妨げない）
-                Auth::logout();
-                request()->session()->invalidate();
-                request()->session()->regenerateToken();
+                $this->clearLocalSession();
             }
 
             // ログアウト後のリダイレクト先
@@ -196,11 +194,7 @@ class SamlAuthController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             // 例外発生時もローカルセッションをクリアしてリダイレクト
-            if (Auth::check()) {
-                Auth::logout();
-                request()->session()->invalidate();
-                request()->session()->regenerateToken();
-            }
+            $this->clearLocalSession();
             return redirect(config('saml2_settings.logoutRoute'))
                 ->with('error', 'ログアウト処理中にエラーが発生しました。');
         }
@@ -413,5 +407,14 @@ class SamlAuthController extends Controller
         $hash = hash('sha256', $samlId);
 
         return "saml_{$hash}@{$domain}";
+    }
+
+    private function clearLocalSession(): void
+    {
+        if (Auth::check()) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
     }
 }
