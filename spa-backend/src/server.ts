@@ -241,10 +241,14 @@ app.get('/saml/logout', (req: Request, res: Response) => {
 // passport.authenticate('saml')により、LogoutRequest（IdP発行）と
 // LogoutResponse（SP発行ログアウト後のコールバック）の両方を処理。
 // 署名検証も実行され、失敗時は /saml/sls/failure にリダイレクトされる。
-const slsHandler = (_req: Request, res: Response) => {
-    // passport.authenticate('saml')がセッションクリアを行うため、
-    // ここではリダイレクトのみ行う
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+const slsHandler = (req: Request, res: Response) => {
+    /// SAML検証後、ローカルセッションをクリア
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error:', err);
+        }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    });
 }
 
 // SLS認証失敗時のハンドラー
