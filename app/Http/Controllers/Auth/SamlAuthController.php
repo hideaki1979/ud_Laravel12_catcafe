@@ -152,7 +152,7 @@ class SamlAuthController extends Controller
      * @param Saml2Auth $saml2Auth
      * @param string $idpName IdP名（ルートパラメータから自動注入）
      */
-    public function sls(Saml2Auth $saml2Auth, string $idpName = 'keycloak')
+    public function sls(Saml2Auth $saml2Auth, string $idpName = 'keycloak'): RedirectResponse
     {
         // OneLogin PHP SAMLライブラリは $_GET からSAMLRequest/SAMLResponseを取得する
         // KeycloakがPOSTでリクエストを送信する場合、$_GETに値を設定する必要がある

@@ -238,11 +238,9 @@ app.get('/saml/logout', (req: Request, res: Response) => {
 });
 
 // SAML Single Logout Service (SLS) - IdPからのログアウトリクエストを処理
-// 注意: passport.authenticate('saml')による署名検証は使用していません。
-// 理由: passport-samlはSAMLResponseの検証用であり、LogoutResponseの検証では
-// "Invalid signature: No response found" エラーが発生するため。
-// セキュリティリスク（ログアウトのみ、データ漏洩なし）と動作の安定性を考慮し、
-// 署名検証をスキップしています。
+// passport.authenticate('saml')により、LogoutRequest（IdP発行）と
+// LogoutResponse（SP発行ログアウト後のコールバック）の両方を処理。
+// 署名検証も実行され、失敗時は /saml/sls/failure にリダイレクトされる。
 const slsHandler = (_req: Request, res: Response) => {
     // passport.authenticate('saml')がセッションクリアを行うため、
     // ここではリダイレクトのみ行う
@@ -258,6 +256,7 @@ const slsFailureHandler = (req: Request, res: Response) => {
         if (err) {
             console.error('SLS logout error after validation failure:', err);
         }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
     });
 }
 
