@@ -154,40 +154,56 @@ class SamlAuthController extends Controller
      */
     public function sls(Saml2Auth $saml2Auth, string $idpName = 'keycloak'): RedirectResponse
     {
-        // OneLogin PHP SAMLライブラリは $_GET からSAMLRequest/SAMLResponseを取得する
-        // KeycloakがPOSTでリクエストを送信する場合、$_GETに値を設定する必要がある
-        if (request()->isMethod('POST')) {
-            // POSTリクエストの場合、BodyからSAMLパラメータを取得して$_GETに設定
-            if (request()->has('SAMLRequest') && !isset($_GET['SAMLRequest'])) {
-                $_GET['SAMLRequest'] = request()->input('SAMLRequest');
+        try {
+
+            // OneLogin PHP SAMLライブラリは $_GET からSAMLRequest/SAMLResponseを取得する
+            // KeycloakがPOSTでリクエストを送信する場合、$_GETに値を設定する必要がある
+            if (request()->isMethod('POST')) {
+                // POSTリクエストの場合、BodyからSAMLパラメータを取得して$_GETに設定
+                if (request()->has('SAMLRequest') && !isset($_GET['SAMLRequest'])) {
+                    $_GET['SAMLRequest'] = request()->input('SAMLRequest');
+                }
+
+                if (request()->has('SAMLResponse') && !isset($_GET['SAMLResponse'])) {
+                    $_GET['SAMLResponse'] = request()->input('SAMLResponse');
+                }
+
+                if (request()->has('RelayState') && !isset($_GET['RelayState'])) {
+                    $_GET['RelayState'] = request()->input('RelayState');
+                }
             }
 
-            if (request()->has('SAMLResponse') && !isset($_GET['SAMLResponse'])) {
-                $_GET['SAMLResponse'] = request()->input('SAMLResponse');
+            $retrieveParametersFromServer = config('saml2_settings.retrieveParametersFromServer');
+            // パッケージの sls() メソッドを呼び出し
+            // 内部で Saml2LogoutEvent が発火され、AppServiceProvider のリスナーで
+            // Auth::logout() と Session::save() が実行される
+            $errors = $saml2Auth->sls($idpName, $retrieveParametersFromServer);
+
+            if (!empty($errors)) {
+                Log::error('SAML SLS エラー', ['errors' => $errors]);
+                // エラーがあっても、セッションはクリアしてリダイレクト
+                // （ログアウトフローを妨げない）
+                Auth::logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
             }
 
-            if (request()->has('RelayState') && !isset($_GET['RelayState'])) {
-                $_GET['RelayState'] = request()->input('RelayState');
+            // ログアウト後のリダイレクト先
+            return redirect(config('saml2_settings.logoutRoute'));
+        } catch (\Exception $e) {
+            Log::error('SAML SLS 例外', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            // 例外発生時もローカルセッションをクリアしてリダイレクト
+            if (Auth::check()) {
+                Auth::logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
             }
+            return redirect(config('saml2_settings.logoutRoute'))
+                ->with('error', 'ログアウト処理中にエラーが発生しました。');
         }
-
-        $retrieveParametersFromServer = config('saml2_settings.retrieveParametersFromServer');
-        // パッケージの sls() メソッドを呼び出し
-        // 内部で Saml2LogoutEvent が発火され、AppServiceProvider のリスナーで
-        // Auth::logout() と Session::save() が実行される
-        $errors = $saml2Auth->sls($idpName, $retrieveParametersFromServer);
-
-        if (!empty($errors)) {
-            Log::error('SAML SLS エラー', ['errors' => $errors]);
-            // エラーがあっても、セッションはクリアしてリダイレクト
-            // （ログアウトフローを妨げない）
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-        }
-
-        // ログアウト後のリダイレクト先
-        return redirect(config('saml2_settings.logoutRoute'));
     }
 
     /**
