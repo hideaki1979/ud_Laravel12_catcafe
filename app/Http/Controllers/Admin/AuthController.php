@@ -40,8 +40,34 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
+    /**
+     * ログアウト処理
+     *
+     * SAMLでログインしたユーザー（saml_idが設定されている）の場合は
+     * SamlAuthController::logout() にリダイレクトしてSLO（Single Logout）を実行。
+     * 通常のフォームログインの場合はローカルセッションのみクリア。
+     *
+     * 参考:
+     * - https://github.com/aacotroneo/laravel-saml2
+     * - https://www.keycloak.org/docs/latest/server_admin/index.html#_saml_logout
+     */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        // SAMLでログインしたユーザーの場合はSAML SLOルートにリダイレクト
+        // SamlAuthController::logout() が KeycloakへのLogoutRequestを送信
+        if ($user && !empty($user->saml_id)) {
+            // ローカルセッションをクリア
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            // 'keycloak' をルートパラメータとして渡し、SAMLパッケージに正しいIdP設定をロードさせる
+            // 参考: https://github.com/aacotroneo/laravel-saml2#multi-tenant--idp
+            return redirect()->route('saml2_logout', 'keycloak');
+        }
+
+        // 通常のフォームログインの場合は従来通り
         // ログアウト処理
         Auth::logout();
         // 現在使っているセキュリティを無効化（セキュリティ対策のため）
