@@ -39,16 +39,36 @@ React SPAとExpress BackendをTypeScriptで書き直しました。
 ### ファイル構成
 
 ```
-cat-cafe-spa/
+cat-cafe-reactspa/
 ├── src/
-│   ├── main.tsx              # エントリーポイント（旧main.jsx）
-│   ├── App.tsx               # メインコンポーネント（旧App.jsx）
-│   ├── vite-env.d.ts         # Vite型定義
+│   ├── main.tsx              # エントリーポイント
+│   ├── App.tsx               # メインコンポーネント
 │   ├── App.css
-│   └── index.css
+│   ├── index.css
+│   ├── api/
+│   │   ├── axios.ts          # Axiosインスタンス設定
+│   │   └── auth.ts           # 認証関連API
+│   ├── components/
+│   │   └── ProtectedRoute.tsx
+│   ├── contexts/
+│   │   ├── AuthContext.tsx
+│   │   ├── AuthProvider.tsx
+│   │   └── index.ts
+│   ├── hooks/
+│   │   └── useAuth.ts
+│   ├── pages/
+│   │   ├── Login.tsx
+│   │   ├── Dashboard.tsx
+│   │   └── NotFound.tsx
+│   └── types/
+│       ├── user.ts
+│       ├── auth.ts
+│       └── index.ts
 ├── tsconfig.json             # TypeScript設定
+├── tsconfig.app.json         # アプリ用TypeScript設定
 ├── tsconfig.node.json        # Node用TypeScript設定
-├── vite.config.ts            # Vite設定（旧vite.config.js）
+├── vite.config.ts            # Vite設定
+├── eslint.config.js          # ESLint設定
 ├── index.html
 └── package.json
 ```
@@ -93,9 +113,10 @@ function App() {
 ### 開発コマンド
 
 ```bash
-cd cat-cafe-spa
+cd cat-cafe-reactspa
 npm run dev     # 開発サーバー起動
 npm run build   # ビルド
+npm run lint    # ESLintチェック
 ```
 
 ---
@@ -173,14 +194,18 @@ declare global {
 
 **src/config/saml.ts**:
 ```typescript
-import { SamlConfig } from 'passport-saml';
+import type { SamlConfig } from '@node-saml/passport-saml';
 
 export const samlConfig: SamlConfig = {
   callbackUrl: `${SP_BASE_URL}/saml/acs`,
   entryPoint: `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/saml`,
+  logoutUrl: `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/saml`,
+  logoutCallbackUrl: `${SP_BASE_URL}/saml/sls`,
   // ...
 };
 ```
+
+> **Note:** `passport-saml` は `@node-saml/passport-saml` v5.x に移行しています。
 
 #### 4. サーバーコードの型注釈
 
@@ -249,7 +274,7 @@ npm run dev
 
 #### React SPA
 ```bash
-cd cat-cafe-spa
+cd cat-cafe-reactspa
 npm install
 npm run dev
 ```
@@ -264,13 +289,13 @@ docker compose up -d spa-backend spa-frontend
 `compose.yaml`の設定:
 ```yaml
 spa-backend:
-  image: node:20-alpine
+  image: node:22.21-alpine
   command: sh -c "npm install && npm run dev"
-  # TypeScript開発モードで起動
+  # TypeScript開発モードで起動（tsx watch）
 
 spa-frontend:
-  image: node:20-alpine
-  command: npm run dev
+  image: node:22.21-alpine
+  command: sh -c "npm install && npm run dev"
   # Vite開発サーバー起動
 ```
 
@@ -306,7 +331,7 @@ npm run typecheck
 
 **解決策**:
 ```bash
-cd cat-cafe-spa
+cd cat-cafe-reactspa
 npm install -D typescript
 ```
 
@@ -325,23 +350,26 @@ npm install -D tsx
 **解決策**:
 ```bash
 cd spa-backend
-npm install -D @types/express @types/passport-saml @types/node
+npm install -D @types/express @types/node
 ```
+
+> **Note:** `@node-saml/passport-saml` v5.x には型定義が含まれているため、別途インストールは不要です。
 
 ### ポート衝突
 
 #### React SPA（デフォルト: 3000）
 
-`.env`で変更:
-```env
-SPA_FRONTEND_PORT=3002
+`cat-cafe-reactspa/vite.config.ts`で変更:
+```typescript
+server: {
+  port: 3002
+}
 ```
 
 #### Express Backend（デフォルト: 3001）
 
 `.env`で変更:
 ```env
-SPA_BACKEND_PORT=3003
 PORT=3003
 ```
 

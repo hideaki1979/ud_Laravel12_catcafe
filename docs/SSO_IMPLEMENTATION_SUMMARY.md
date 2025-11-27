@@ -2,7 +2,8 @@
 
 ## 実装内容
 
-Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
+Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。  
+**React SPAとExpress BackendはTypeScriptで実装されています。**
 
 ### 構成
 
@@ -17,13 +18,13 @@ Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
     │          │           │
 ┌───▼────┐  ┌─▼────────┐  │
 │Laravel │  │React SPA │  │
-│  App   │  │   App    │  │
+│  App   │  │(TypeScript)│ │
 │Port 80 │  │Port 3000 │  │
 └────────┘  └──────┬───┘  │
                    │       │
          ┌─────────▼───────▼───┐
          │ Node.js Express     │
-         │ (SAML Backend)      │
+         │ (TypeScript)        │
          │ Port 3001           │
          └─────────────────────┘
 ```
@@ -48,44 +49,70 @@ Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
 - `GET /saml2/keycloak/metadata` - メタデータ
 - `GET /saml2/keycloak/sls` - Single Logout Service
 
-### 2. React SPA（新規作成）
+### 2. React SPA（TypeScript実装）
 
-**ディレクトリ:** `cat-cafe-spa/`
+**ディレクトリ:** `cat-cafe-reactspa/`
 
 **主要ファイル:**
-- `src/App.jsx` - メインコンポーネント
-- `src/pages/Login.jsx` - ログインページ
-- `src/pages/Dashboard.jsx` - ダッシュボード（認証後）
-- `vite.config.js` - Vite設定（プロキシ設定含む）
+- `src/App.tsx` - メインコンポーネント
+- `src/pages/Login.tsx` - ログインページ
+- `src/pages/Dashboard.tsx` - ダッシュボード（認証後）
+- `src/pages/NotFound.tsx` - 404ページ
+- `src/api/axios.ts` - Axiosインスタンス設定
+- `src/api/auth.ts` - 認証関連API
+- `src/contexts/AuthContext.tsx` - 認証状態管理
+- `src/contexts/AuthProvider.tsx` - 認証プロバイダー
+- `src/hooks/useAuth.ts` - 認証フック
+- `src/components/ProtectedRoute.tsx` - 認証が必要なルート
+- `src/types/` - 型定義（user.ts, auth.ts）
+- `vite.config.ts` - Vite設定（TypeScript）
 - `package.json` - 依存関係
+
+**技術スタック:**
+- React 19
+- TypeScript 5.9
+- Vite 7
+- Tailwind CSS 4
+- React Router 7
+- Axios
 
 **機能:**
 - Keycloak SAML認証
 - ユーザー情報表示
 - Laravel Appへのリンク
 - SSO説明UI
+- 型安全な実装
 
-### 3. Node.js Express SAML Backend（新規作成）
+### 3. Node.js Express SAML Backend（TypeScript実装）
 
 **ディレクトリ:** `spa-backend/`
 
 **主要ファイル:**
-- `server.js` - Expressサーバー + Passport SAML
-- `saml-config.js` - SAML 2.0設定
+- `src/server.ts` - Expressサーバー + Passport SAML
+- `src/config/saml.ts` - SAML 2.0設定
+- `src/types/user.ts` - ユーザー型定義
+- `src/types/express.d.ts` - Express拡張型定義
 - `package.json` - 依存関係
 
 **エンドポイント:**
 - `GET /saml/login` - SAML認証開始
 - `POST /saml/acs` - Assertion Consumer Service
-- `GET /saml/logout` - シングルログアウト
+- `GET /saml/logout` - シングルログアウト（SP発行）
+- `GET /saml/sls` - Single Logout Service（IdPからのリクエスト処理）
+- `POST /saml/sls` - Single Logout Service（POSTバージョン）
 - `GET /saml/metadata` - SAMLメタデータ
 - `GET /api/auth/check` - 認証状態確認
 - `GET /api/user` - ユーザー情報取得
+- `POST /api/auth/logout` - ローカルログアウト
+- `GET /health` - ヘルスチェック
 
 **使用技術:**
-- Express.js
-- Passport.js + passport-saml
+- Express 5
+- TypeScript 5.9
+- @node-saml/passport-saml v5.1.0
+- Passport.js
 - express-session
+- tsx（開発時実行）
 - CORS対応
 
 ### 4. Docker Compose統合
@@ -107,8 +134,11 @@ Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
 
 **作成したドキュメント:**
 - `docs/SSO_QUICKSTART.md` - クイックスタートガイド（5分で完了）
-- `docs/SSO_SETUP_GUIDE.md` - 詳細セットアップガイド
 - `docs/SSO_IMPLEMENTATION_SUMMARY.md` - 実装まとめ（このファイル）
+- `docs/SSO_TYPESCRIPT_MIGRATION.md` - TypeScript移行ガイド
+- `docs/REACT_SPA_QUICKSTART.md` - React SPAクイックスタート
+- `docs/REACT_SPA_IMPLEMENTATION_PLAN.md` - React SPA実装計画書
+- `docs/KEYCLOAK_SAML_SETUP.md` - Keycloak SAML設定詳細
 
 **更新したドキュメント:**
 - `README.md` - プロジェクトREADMEにSSO情報を追加
@@ -172,16 +202,22 @@ Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
 ## 技術スタック
 
 ### Laravel側
-- **Framework:** Laravel 11.x
+- **Framework:** Laravel 12.x
 - **SAML Library:** aacotroneo/laravel-saml2
 - **Protocol:** SAML 2.0
 
 ### React SPA側
-- **Frontend:** React 18 + Vite
-- **Styling:** Tailwind CSS
-- **Backend:** Node.js 18 + Express
-- **SAML Library:** passport-saml
+- **Frontend:** React 19 + Vite 7 + TypeScript 5.9
+- **Styling:** Tailwind CSS 4
+- **Routing:** React Router 7
+- **HTTP Client:** Axios
+
+### Express Backend側
+- **Runtime:** Node.js 22 + Express 5
+- **Language:** TypeScript 5.9
+- **SAML Library:** @node-saml/passport-saml v5.1.0
 - **Session:** express-session
+- **Dev Tool:** tsx（TypeScript実行）
 
 ### IdP
 - **Identity Provider:** Keycloak 26.0
@@ -198,33 +234,59 @@ Keycloak + SAML 2.0を使用したEnterprise SSO環境を構築しました。
 ### 新規作成ファイル
 
 ```
-cat-cafe-spa/
+cat-cafe-reactspa/
 ├── src/
-│   ├── main.jsx
-│   ├── App.jsx
+│   ├── main.tsx
+│   ├── App.tsx
+│   ├── App.css
 │   ├── index.css
-│   └── pages/
-│       ├── Login.jsx
-│       └── Dashboard.jsx
+│   ├── api/
+│   │   ├── axios.ts
+│   │   └── auth.ts
+│   ├── components/
+│   │   └── ProtectedRoute.tsx
+│   ├── contexts/
+│   │   ├── AuthContext.tsx
+│   │   ├── AuthProvider.tsx
+│   │   └── index.ts
+│   ├── hooks/
+│   │   └── useAuth.ts
+│   ├── pages/
+│   │   ├── Login.tsx
+│   │   ├── Dashboard.tsx
+│   │   └── NotFound.tsx
+│   └── types/
+│       ├── user.ts
+│       ├── auth.ts
+│       └── index.ts
 ├── index.html
-├── vite.config.js
-├── tailwind.config.js
-├── postcss.config.js
+├── vite.config.ts
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── eslint.config.js
 ├── package.json
-├── .gitignore
 └── README.md
 
 spa-backend/
-├── server.js
-├── saml-config.js
+├── src/
+│   ├── server.ts
+│   ├── config/
+│   │   └── saml.ts
+│   └── types/
+│       ├── user.ts
+│       └── express.d.ts
+├── tsconfig.json
 ├── package.json
-├── .gitignore
 └── README.md
 
 docs/
 ├── SSO_QUICKSTART.md
-├── SSO_SETUP_GUIDE.md
-└── SSO_IMPLEMENTATION_SUMMARY.md
+├── SSO_IMPLEMENTATION_SUMMARY.md
+├── SSO_TYPESCRIPT_MIGRATION.md
+├── REACT_SPA_QUICKSTART.md
+├── REACT_SPA_IMPLEMENTATION_PLAN.md
+└── KEYCLOAK_SAML_SETUP.md
 
 scripts/
 └── start-sso.sh
@@ -236,6 +298,9 @@ scripts/
 - resources/views/admin/login.blade.php  # Keycloakログインボタン追加
 - compose.yaml                            # spa-frontend, spa-backend追加
 - README.md                               # SSO情報追加
+- app/Http/Controllers/Admin/AuthController.php  # SAML SLO対応
+- app/Http/Controllers/Auth/SamlAuthController.php  # SAML認証処理
+- routes/web.php                          # SAML SLS POSTルート追加
 ```
 
 ## 起動方法
@@ -261,14 +326,14 @@ chmod +x scripts/start-sso.sh
 php artisan serve
 
 # React SPA Frontend（別ターミナル）
-cd cat-cafe-spa
+cd cat-cafe-reactspa
 npm install
 npm run dev
 
 # Node.js Backend（別ターミナル）
 cd spa-backend
 npm install
-npm run dev
+npm run dev  # tsx watchでTypeScript実行
 
 # Keycloak（別ターミナル）
 docker run -p 8080:8080 \
@@ -323,22 +388,33 @@ docker run -p 8080:8080 \
 4. IdPがAssertionを生成してSPに送信
 5. SPがAssertionを検証してユーザーをログイン
 
+**シングルログアウト（SLO）フロー:**
+1. ユーザーがいずれかのSPでログアウトボタンをクリック
+2. SPがIdP（Keycloak）にLogoutRequestを送信
+3. IdPが他のすべてのSPにLogoutRequestを送信（Back-Channel）
+4. 各SPがローカルセッションをクリア
+5. IdPがログアウト完了画面を表示
+
 ### 実装のポイント
 
 **Laravel側:**
 - `aacotroneo/laravel-saml2` パッケージ使用
 - 自動ルート登録機能
 - カスタムコントローラーで柔軟な処理
+- SAMLユーザーのSLO対応（AuthController::logout）
 
 **Node.js側:**
-- `passport-saml` で標準的なSAML実装
+- `@node-saml/passport-saml` v5 で標準的なSAML実装
+- TypeScriptで型安全な実装
 - Express Sessionでセッション管理
 - CORS設定でSPAと連携
+- SLS（Single Logout Service）対応
 
 **Keycloak側:**
 - クライアント署名をOFFで簡略化（学習用）
 - マッパーで属性マッピング
 - persistent NameID形式で一意識別
+- Back-Channel Logout推奨設定
 
 ## トラブルシューティング
 
@@ -359,6 +435,14 @@ docker run -p 8080:8080 \
 **4. Node.js Backendエラー**
 - 原因: 証明書未設定、環境変数不足
 - 解決: `.env` ファイル確認、証明書設定
+
+**5. SLO（シングルログアウト）が他のSPに伝播しない**
+- 原因1: AuthController::logout()がSAMLユーザーの場合にKeycloakへLogoutRequestを送信していない
+- 解決: SAMLユーザー（saml_idが設定されている）の場合は`saml2_logout`ルートにリダイレクト
+- 原因2: KeycloakのLogout Service URLが未設定
+- 解決: 各SAMLクライアントにLogout Service POST/Redirect Binding URLを設定
+- 原因3: routes/web.phpにPOST版SLSルートがない
+- 解決: POST版のSLSルートを追加
 
 ### ログ確認方法
 
@@ -417,6 +501,7 @@ docker compose logs -f keycloak
 3. **Keycloak**の基本的な使い方
 4. 複数アプリケーションの統合
 5. Docker Composeでのマイクロサービス構成
+6. **TypeScript**での型安全なバックエンド/フロントエンド開発
 
 ### 次のステップ
 

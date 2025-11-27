@@ -4,7 +4,7 @@ React SPA（TypeScript）の起動とSSO動作確認を5分で完了！
 
 ## 📋 前提条件
 
-- Node.js 18以上がインストール済み
+- Node.js 22以上がインストール済み（または Node.js 18以上）
 - Keycloakが起動済み（`http://localhost:8080`）
 - Express Backendが設定済み（`spa-backend/`）
 
@@ -18,11 +18,13 @@ React SPA（TypeScript）の起動とSSO動作確認を5分で完了！
 cd cat-cafe-reactspa
 ```
 
-`.env`ファイル内容：
+`.env`ファイル内容（必要に応じて）：
 
 ```env
 VITE_API_BASE_URL=http://localhost:3001
 ```
+
+> **Note:** デフォルトでは `http://localhost:3001` が使用されるため、`.env`ファイルは省略可能です。
 
 ### 2. Express Backendの起動
 
@@ -58,7 +60,7 @@ npm run dev
 以下のような出力が表示されればOK：
 
 ```
-  VITE v7.2.4  ready in XXX ms
+  VITE v7.x.x  ready in XXX ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: use --host to expose
@@ -227,9 +229,11 @@ http://localhost:3000
 - [Express Backend README](../spa-backend/README.md)
 - [Keycloak SAML設定](./KEYCLOAK_SAML_SETUP.md)
 - [SSO実装まとめ](./SSO_IMPLEMENTATION_SUMMARY.md)
+- [SSO クイックスタート](./SSO_QUICKSTART.md)
 
 ---
 
 **作成日**: 2025-11-25  
+**更新日**: 2025-11-27  
 **所要時間**: 約5分
 
