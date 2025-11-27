@@ -215,18 +215,18 @@ Keycloak では、**レルム（Realm）** がユーザーとアプリケーシ�
 
 #### ログアウト設定（Single Logout / SLO）
 
-> ⚠️ **重要**: マルチSP環境でSLOを正しく動作させるには、以下の設定が必須です。
+> ⚠️ **重要**: マルチ SP 環境で SLO を正しく動作させるには、以下の設定が必須です。
 
-| 項目                                     | 値                                      | 説明                                                  |
-| ---------------------------------------- | --------------------------------------- | ----------------------------------------------------- |
-| **Front channel logout**                 | OFF                                     | Back-Channel Logoutを使用（推奨）                     |
-| **Logout Service POST Binding URL**      | `http://localhost/saml2/keycloak/sls`   | Back-Channel LogoutでKeycloakがPOSTリクエストを送信するURL |
-| **Logout Service Redirect Binding URL**  | `http://localhost/saml2/keycloak/sls`   | リダイレクト方式でのログアウトURL                      |
+| 項目                                    | 値                                    | 説明                                                             |
+| --------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| **Front channel logout**                | OFF                                   | Back-Channel Logout を使用（推奨）                               |
+| **Logout Service POST Binding URL**     | `http://localhost/saml2/keycloak/sls` | Back-Channel Logout で Keycloak が POST リクエストを送信する URL |
+| **Logout Service Redirect Binding URL** | `http://localhost/saml2/keycloak/sls` | リダイレクト方式でのログアウト URL                               |
 
 > 📝 **Back-Channel Logout vs Front-Channel Logout**
 >
-> - **Back-Channel Logout（推奨）**: KeycloakがサーバーサイドでHTTP POSTリクエストを各SPに送信。ブラウザを経由しないため信頼性が高い。
-> - **Front-Channel Logout**: Keycloakがブラウザ経由（iframe/リダイレクト）で各SPにログアウトリクエストを送信。ブラウザの制限やCORS問題が発生しやすい。
+> -   **Back-Channel Logout（推奨）**: Keycloak がサーバーサイドで HTTP POST リクエストを各 SP に送信。ブラウザを経由しないため信頼性が高い。
+> -   **Front-Channel Logout**: Keycloak がブラウザ経由（iframe/リダイレクト）で各 SP にログアウトリクエストを送信。ブラウザの制限や CORS 問題が発生しやすい。
 
 **Save** をクリック
 
@@ -794,29 +794,29 @@ protected $fillable = [
 ];
 ```
 
-### 問題 12: マルチSP環境でSLO（Single Logout）が他のSPに伝播しない
+### 問題 12: マルチ SP 環境で SLO（Single Logout）が他の SP に伝播しない
 
 **症状**:
 
--   SPA側でログアウト → SPAのセッションは終了、Keycloakセッションも終了
--   しかし、Laravel側はリロードしてもダッシュボードが表示される（セッションが残っている）
+-   SPA 側でログアウト → SPA のセッションは終了、Keycloak セッションも終了
+-   しかし、Laravel 側はリロードしてもダッシュボードが表示される（セッションが残っている）
 
-**原因1**: KeycloakのLogout Service URLが設定されていない
+**原因 1**: Keycloak の Logout Service URL が設定されていない
 
 **解決策**:
 
-Keycloak管理画面で各SAMLクライアントに**Logout Service URL**を設定してください：
+Keycloak 管理画面で各 SAML クライアントに**Logout Service URL**を設定してください：
 
 1. **Clients** → 対象のクライアント（例: `http://localhost/saml2/keycloak/metadata`）を開く
 2. **Settings** タブで以下を設定：
-   - **Front channel logout**: OFF
-   - **Logout Service POST Binding URL**: `http://localhost/saml2/keycloak/sls`
-   - **Logout Service Redirect Binding URL**: `http://localhost/saml2/keycloak/sls`
+    - **Front channel logout**: OFF
+    - **Logout Service POST Binding URL**: `http://localhost/saml2/keycloak/sls`
+    - **Logout Service Redirect Binding URL**: `http://localhost/saml2/keycloak/sls`
 3. **Save** をクリック
 
-> ⚠️ **重要**: すべてのSAMLクライアント（Laravel用、SPA Backend用など）に同様の設定が必要です。
+> ⚠️ **重要**: すべての SAML クライアント（Laravel 用、SPA Backend 用など）に同様の設定が必要です。
 
-**原因2**: Laravel側でSaml2LogoutEventリスナーが未実装
+**原因 2**: Laravel 側で Saml2LogoutEvent リスナーが未実装
 
 **解決策**:
 
@@ -840,13 +840,13 @@ public function boot(): void
 }
 ```
 
-> 📝 **参考**: [aacotroneo/laravel-saml2 公式GitHub](https://github.com/aacotroneo/laravel-saml2)
+> 📝 **参考**: [aacotroneo/laravel-saml2 公式 GitHub](https://github.com/aacotroneo/laravel-saml2)
 
-**原因3**: CSRF保護によりSLSエンドポイントがブロックされている
+**原因 3**: CSRF 保護により SLS エンドポイントがブロックされている
 
 **解決策**:
 
-`bootstrap/app.php` でSLSエンドポイントをCSRF保護から除外してください：
+`bootstrap/app.php` で SLS エンドポイントを CSRF 保護から除外してください：
 
 ```php
 $middleware->validateCsrfTokens(except: [
@@ -854,6 +854,74 @@ $middleware->validateCsrfTokens(except: [
     'saml2/keycloak/sls',  // ← SLSも除外
 ]);
 ```
+
+**原因 4**: AuthController::logout() が SAML ユーザーの場合に Keycloak へ LogoutRequest を送信していない
+
+**症状**:
+
+-   Laravel 側のログアウトボタンをクリックしても、SPA 側のセッションがクリアされない
+-   ローカルセッションのみクリアされ、Keycloak セッションは維持される
+
+**解決策**:
+
+`app/Http/Controllers/Admin/AuthController.php` の `logout()` メソッドを修正し、SAML でログインしたユーザー（`saml_id`が設定されている）の場合は`saml2_logout`ルートにリダイレクトします：
+
+```php
+public function logout(Request $request)
+{
+    $user = Auth::user();
+
+    // SAMLでログインしたユーザーの場合はSAML SLOルートにリダイレクト
+    // SamlAuthController::logout() が KeycloakへのLogoutRequestを送信
+    if ($user && !empty($user->saml_id)) {
+        // ローカルセッションをクリア
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        // 'keycloak' をルートパラメータとして渡し、SAMLパッケージに正しいIdP設定をロードさせる
+        return redirect()->route('saml2_logout', 'keycloak');
+    }
+
+    // 通常のフォームログインの場合は従来通り
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('admin.login');
+}
+```
+
+> ⚠️ **重要な設計原則**:
+>
+> -   `AuthController`: ローカルのフォームログイン/ログアウト専用
+> -   `SamlAuthController`: SAML 認証（SSO/SLO）専用
+> -   SAML ユーザーのログアウトは必ず`SamlAuthController::logout()`経由で Keycloak に LogoutRequest を送信する
+
+**原因 5**: Keycloak が POST で LogoutRequest を送信するが、Laravel 側に POST ルートがない
+
+**症状**:
+
+-   Keycloak からの Back-Channel Logout が届かない
+-   `405 Method Not Allowed` エラー
+
+**解決策**:
+
+`routes/web.php` に POST 版の SLS ルートを追加してください：
+
+```php
+use App\Http\Controllers\Auth\SamlAuthController;
+
+// SAML SLS (Single Logout Service) - POST版を追加
+// パッケージのデフォルトルートはGETのみだが、KeycloakはPOSTでLogoutRequestを送信する場合がある
+Route::middleware(config('saml2_settings.routesMiddleware'))
+    ->prefix(config('saml2_settings.routesPrefix'))
+    ->group(function () {
+        Route::post('/{idpName}/sls', [SamlAuthController::class, 'sls'])
+            ->name('saml2_sls_post');
+    });
+```
+
+> 📝 **参考**: Keycloak は`Front channel logout`が OFF の場合でも、Back-Channel Logout で POST リクエストを送信することがあります。
 
 ---
 

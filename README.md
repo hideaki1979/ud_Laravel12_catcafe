@@ -12,10 +12,10 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
 
 -   **Laravel App**（既存アプリ） - http://localhost
 -   **React SPA**（デモ用、TypeScript） - http://localhost:3000
--   **Express Backend**（SAML認証サーバー、TypeScript） - http://localhost:3001
+-   **Express Backend**（SAML 認証サーバー、TypeScript） - http://localhost:3001
 -   **Keycloak**（IdP） - http://localhost:8080
 
-**一度のログインで両方のアプリにアクセス可能**です！React SPAとExpress Backendは**TypeScript**で実装されています。
+**一度のログインで両方のアプリにアクセス可能**です！React SPA と Express Backend は**TypeScript**で実装されています。
 
 詳細は [SSO クイックスタートガイド](docs/SSO_QUICKSTART.md) を参照してください。
 
@@ -45,7 +45,7 @@ SAML 認証を利用した SSO（シングルサインオン）や、Laravel Rev
 | **Database**  | <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/SQLite370.svg" alt="SQLite" height="40">                                                                                                                      |
 | **Real-time** | Laravel Reverb, Laravel Echo, Pusher JS                                                                                                                                                                                     |
 | **Auth**      | Laravel SAML2 (aacotroneo/laravel-saml2)                                                                                                                                                                                    |
-| **SSO Demo**  | React (TypeScript) + Vite, Node.js Express (TypeScript), passport-saml, Keycloak                                                                                                                                           |
+| **SSO Demo**  | React 19 (TypeScript) + Vite 7, Node.js Express 5 (TypeScript), @node-saml/passport-saml v5, Keycloak 26                                                                                                                    |
 
 ## 環境構築手順
 
@@ -184,24 +184,31 @@ erDiagram
 cat-cafe/
 ├── app/                 # アプリケーションのコアロジック (Models, Controllers, etc.)
 ├── bootstrap/           # フレームワークの起動スクリプト
-├── cat-cafe-spa/        # React SPA フロントエンド（SSO デモ用）
+├── cat-cafe-reactspa/   # React SPA フロントエンド（SSO デモ用、TypeScript）
 │   ├── src/
-│   │   ├── pages/       # Login, Dashboard
-│   │   └── App.jsx
+│   │   ├── api/         # API通信層 (axios, auth)
+│   │   ├── components/  # 再利用可能なコンポーネント
+│   │   ├── contexts/    # React Context (AuthContext)
+│   │   ├── hooks/       # カスタムフック (useAuth)
+│   │   ├── pages/       # Login, Dashboard, NotFound
+│   │   ├── types/       # 型定義
+│   │   └── App.tsx
 │   └── package.json
 ├── config/              # 設定ファイル (SAML, Reverb設定など)
 │   └── saml2/           # SAML 2.0 設定
 ├── database/            # マイグレーション, シーダー, SQLiteファイル
 ├── docs/                # ドキュメント
 │   ├── SSO_QUICKSTART.md          # SSO クイックスタート
-│   ├── SSO_SETUP_GUIDE.md         # SSO 詳細ガイド
+│   ├── SSO_IMPLEMENTATION_SUMMARY.md # SSO 実装まとめ
 │   └── KEYCLOAK_SAML_SETUP.md     # Keycloak 設定
 ├── public/              # 公開ディレクトリ (画像, CSS, JS)
 ├── resources/           # ビュー(Blade), 生のCSS/JS
 ├── routes/              # ルーティング定義 (web.php, api.php)
-├── spa-backend/         # Node.js Express SAML バックエンド（SSO デモ用）
-│   ├── server.js
-│   ├── saml-config.js
+├── spa-backend/         # Node.js Express SAML バックエンド（SSO デモ用、TypeScript）
+│   ├── src/
+│   │   ├── config/      # SAML設定 (saml.ts)
+│   │   ├── types/       # 型定義
+│   │   └── server.ts    # Expressサーバー
 │   └── package.json
 ├── storage/             # ログ, キャッシュ, ファイルアップロード先
 ├── tests/               # テストコード

@@ -105,7 +105,9 @@ React SPAとExpress BackendはTypeScriptで書かれています。開発時は�
    - Valid redirect URIs: `http://localhost:3000/*`, `http://localhost:3001/*`
    - Master SAML Processing URL: `http://localhost:3001/saml/acs`
    - Assertion Consumer Service POST Binding URL: `http://localhost:3001/saml/acs`
-   - Logout Service POST Binding URL: `http://localhost:3001/saml/logout`
+   - Logout Service POST Binding URL: `http://localhost:3001/saml/sls`
+   - Logout Service Redirect Binding URL: `http://localhost:3001/saml/sls`
+   - Front channel logout: **OFF**（Back-Channel Logout推奨）
 5. 「Save」をクリック
 6. 同じマッパー（Email, Name）を追加
 
@@ -148,11 +150,21 @@ SAML2_KEYCLOAK_IDP_x509="ここに証明書を貼り付け（改行なし）"
 6. 「Laravel Appを開く」ボタンをクリック
 7. **🎊 Laravelも自動的にログイン済み！**
 
-#### シナリオ3: シングルログアウト（SLO）
+#### シナリオ3: シングルログアウト（SLO） - SPA側から
 
 1. React SPAで「ログアウト」ボタンをクリック
-2. Laravel Appのタブをリロード
-3. **🎊 両方からログアウトされている！**
+2. React SPAのログイン画面に戻る
+3. Laravel Appのタブをリロード
+4. **🎊 Laravel側もログアウトされている！**
+
+#### シナリオ4: シングルログアウト（SLO） - Laravel側から
+
+1. Laravel管理画面で「ログアウト」ボタンをクリック
+2. Laravelのログイン画面に戻る
+3. React SPAのタブをリロード
+4. **🎊 SPA側もログアウトされている！**
+
+> 📝 **重要**: Laravel側からのSLOが機能するには、`AuthController::logout()`がSAMLユーザーの場合に`saml2_logout`ルートにリダイレクトする実装が必要です。詳細は[KEYCLOAK_SAML_SETUP.md](./KEYCLOAK_SAML_SETUP.md)の「問題12」を参照してください。
 
 ## 🎯 成功の証
 
@@ -191,7 +203,7 @@ tail -f storage/logs/laravel.log
 docker compose logs spa-frontend
 
 # または手動で起動（TypeScript版）
-cd cat-cafe-spa
+cd cat-cafe-reactspa
 npm install
 npm run dev  # Vite + TypeScript開発サーバー起動
 ```
@@ -234,9 +246,10 @@ npm run dev  # tsx watch でTypeScript実行
 より詳しい情報は以下を参照してください：
 
 - [SSO_IMPLEMENTATION_SUMMARY.md](./SSO_IMPLEMENTATION_SUMMARY.md) - SSO実装サマリー
-- [SSO_TYPESCRIPT_MIGRATION.md](./SSO_TYPESCRIPT_MIGRATION.md) - **TypeScript移行ガイド（新規）**
+- [SSO_TYPESCRIPT_MIGRATION.md](./SSO_TYPESCRIPT_MIGRATION.md) - TypeScript移行ガイド
 - [KEYCLOAK_SAML_SETUP.md](./KEYCLOAK_SAML_SETUP.md) - Keycloak詳細設定
-- [cat-cafe-spa/README.md](../cat-cafe-spa/README.md) - React SPA詳細
+- [REACT_SPA_QUICKSTART.md](./REACT_SPA_QUICKSTART.md) - React SPAクイックスタート
+- [cat-cafe-reactspa/README.md](../cat-cafe-reactspa/README.md) - React SPA詳細
 - [spa-backend/README.md](../spa-backend/README.md) - Express Backend詳細
 
 ## 🎓 学習ポイント
@@ -260,8 +273,8 @@ npm run dev  # tsx watch でTypeScript実行
 
 4. **実装技術**
    - Laravel: aacotroneo/laravel-saml2
-   - Node.js: passport-saml (TypeScript)
-   - React: SPA + バックエンドAPI (TypeScript + Vite)
+   - Node.js: @node-saml/passport-saml v5 (TypeScript)
+   - React 19: SPA + バックエンドAPI (TypeScript + Vite 7)
    - TypeScript: 型安全な開発環境
 
 ## 🚀 次のステップ
