@@ -58,8 +58,12 @@ class AuthController extends Controller
         // SAMLでログインしたユーザーの場合はSAML SLOルートにリダイレクト
         // SamlAuthController::logout() が KeycloakへのLogoutRequestを送信
         if ($user && !empty($user->saml_id)) {
-            // 公式ドキュメントに従い、IdP設定を明示的にロードしてSaml2Authを作成
-            // https://github.com/aacotroneo/laravel-saml2#usage
+            // ローカルセッションをクリア
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            // 'keycloak' をルートパラメータとして渡し、SAMLパッケージに正しいIdP設定をロードさせる
+            // 参考: https://github.com/aacotroneo/laravel-saml2#multi-tenant--idp
             return redirect()->route('saml2_logout', 'keycloak');
         }
 
