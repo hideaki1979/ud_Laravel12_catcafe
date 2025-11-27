@@ -59,7 +59,7 @@ class AuthController extends Controller
         // SamlAuthController::logout() が KeycloakへのLogoutRequestを送信
         if ($user && !empty($user->saml_id)) {
             // ローカルセッションをクリア
-            $this->clearLocalSession();
+            $this->clearLocalSession($request);
             // 'keycloak' をルートパラメータとして渡し、SAMLパッケージに正しいIdP設定をロードさせる
             // 参考: https://github.com/aacotroneo/laravel-saml2#multi-tenant--idp
             return redirect()->route('saml2_logout', 'keycloak');
@@ -67,12 +67,12 @@ class AuthController extends Controller
 
         // 通常のフォームログインの場合は従来通り
         // ログアウト処理
-        $this->clearLocalSession();
+        $this->clearLocalSession($request);
         return redirect()->route('admin.login');
     }
 
     // ローカルログアウト（ローカルセッションクリア処理）
-    private function clearLocalSession(): void
+    private function clearLocalSession(Request $request): void
     {
         if (Auth::check()) {
             // ログアウト処理
