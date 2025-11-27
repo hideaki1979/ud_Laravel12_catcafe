@@ -237,19 +237,50 @@ app.get('/saml/logout', (req: Request, res: Response) => {
     });
 });
 
-// SAML Single Logout Service (SLS) - IdP発行ログアウトの受信
-// IdPから送られてくるログアウトリクエストを処理
+// SAML Single Logout Service (SLS) - IdPからのログアウトリクエストを処理
+// passport.authenticate('saml')により、LogoutRequest（IdP発行）と
+// LogoutResponse（SP発行ログアウト後のコールバック）の両方を処理。
+// 署名検証も実行され、失敗時は /saml/sls/failure にリダイレクトされる。
+const slsHandler = (req: Request, res: Response) => {
+    /// SAML検証後、ローカルセッションをクリア
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error:', err);
+        }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    });
+}
+
+// SLS認証失敗時のハンドラー
+const slsFailureHandler = (req: Request, res: Response) => {
+    console.error('SAML SLS: 署名検証失敗');
+    // 署名検証に失敗しても、ローカルセッションはクリアしてリダイレクト
+    // （セキュリティ上、不正なリクエストでもログアウトは許可）
+    req.logout((err) => {
+        if (err) {
+            console.error('SLS logout error after validation failure:', err);
+        }
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    });
+}
+
+// Front channel logoutの場合、KeycloakはGETでリダイレクトしてくる
+app.get('/saml/sls',
+    passport.authenticate('saml', { failureRedirect: '/saml/sls/failure' }),
+    slsHandler
+);
+// POST版のSLS（Back channel logoutの場合）
 app.post('/saml/sls',
-    passport.authenticate('saml', { failureRedirect: '/' }),
-    (req: Request, res: Response) => {
-        console.log('SAML SLS: Logout request from IdP');
-        req.logout(() => {
-            res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
-        });
-    }
+    passport.authenticate('saml', { failureRedirect: '/saml/sls/failure' }),
+    slsHandler
 );
 
-// ローカルログアウト（セッションのみクリア）
+// SLS検証失敗時のフォールバック
+app.get('/saml/sls/failure', slsFailureHandler);
+app.post('/saml/sls/failure', slsFailureHandler);
+
+// ローカルログアウト（セッションのみクリア、SLOを使用しない場合）
+// フロントエンドのauthApi.logout()から呼び出される
 app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.logout((err) => {
         if (err) {

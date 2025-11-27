@@ -21,23 +21,26 @@ export default function Login() {
     }
 
     return (
-        <div>
-            <div>
-                <h1>🐱 La NekoCafe</h1>
-                <p>React SPA with SAML SSO</p>
-            </div>
-            <button
-                onClick={login}
-            >
-                Keycloakでログイン
-            </button>
+        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-blue-100 to-indigo-200">
+            <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
+                <h1 className="text-gray-800 text-2xl font-bold text-center mb-6">
+                    🐱 La NekoCafe
+                </h1>
+                <p className="text-gray-600 text-center mb-8">React SPA with SAML SSO</p>
+                <button
+                    onClick={login}
+                    className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-800 transition duration-200 font-semibold"
+                >
+                    Keycloakでログイン
+                </button>
 
-            {import.meta.env.DEV && (
-                <div>
-                    <p>テストユーザー：</p>
-                    <p>testuser / test1234</p>
-                </div>
-            )}
+                {import.meta.env.DEV && (
+                    <div className="mt-6 text-gray-500 text-sm text-center">
+                        <p>テストユーザー：testuser</p>
+                        <p>（パスワードは別途確認してください）</p>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

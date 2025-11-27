@@ -101,20 +101,21 @@ services:
     spa-backend:
         image: "node:22.21-alpine"
         working_dir: /app
-        command: sh -c "if [ ! -d 'node_modules' ]; then npm install; fi && npm run dev"
+        command: sh -c "npm install && npm run dev"
         ports:
             - "3001:3001"
         environment:
             PORT: 3001
             NODE_ENV: development
             FRONTEND_URL: http://localhost:3000
-            KEYCLOAK_BASE_URL: http://keycloak:8080
+            KEYCLOAK_BASE_URL: http://localhost:8080
             KEYCLOAK_REALM: lanekocafe
             SP_BASE_URL: http://localhost:3001
             SESSION_SECRET: "${SESSION_SECRET}"
-            SAML_IDP_CERT: "${SAML2_KEYCLOAK_IDP_x509:-}"
+            SAML_IDP_CERT: "${SAML_IDP_CERT:-}"
         volumes:
             - "./spa-backend:/app"
+            - spa-backend-node-modules:/app/node_modules
         networks:
             - sail
         depends_on:
@@ -122,13 +123,14 @@ services:
     spa-frontend:
         image: "node:22.21-alpine"
         working_dir: /app
-        command: sh -c "if [ ! -d 'node_modules' ]; then npm install; fi && npm run dev"
+        command: sh -c "npm install && npm run dev"
         ports:
             - "3000:3000"
         environment:
             NODE_ENV: development
         volumes:
             - "./cat-cafe-reactspa:/app"
+            - spa-frontend-node-modules:/app/node_modules
         networks:
             - sail
         depends_on:
@@ -140,4 +142,8 @@ volumes:
     sail-mysql:
         driver: local
     keycloak-data:
+        driver: local
+    spa-backend-node-modules:
+        driver: local
+    spa-frontend-node-modules:
         driver: local

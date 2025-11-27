@@ -7,6 +7,7 @@ export default defineConfig({
     plugins: [react(), tailwindcss(),],
     server: {
         port: 3000,
+        host: true, // Docker外からアクセス可能にする
         proxy: {
             // APIリクエストをExpress Backendにプロキシ
             '/api': {
